@@ -64,10 +64,11 @@ goodput 通常定义为「满足 SLO 的请求的吞吐」，是同一想法的�
 
 ## 出现在哪些论文里
 
+- [DistServe](../topics/llm-serving/2024-distserve/README.md) —— 把 **per-GPU goodput** （在 SLO 达成率约束下每张 GPU 能承受的最大请求率）立为优化目标，并坚持 **TTFT / TPOT 双指标**；论证了「总吞吐」作为目标会把优化带向错误方向。
 - [CacheRoute](../topics/llm-serving/2026-cacheroute/README.md) —— SLO 容量的定义、右删失标注、配对种子与 Student-$t$ 置信区间的完整用法；并用实测数据说明缓存命中率与 SLO 容量不单调。
 
 ## 延伸阅读
 
 - The Tail at Scale（Dean & Barroso, 2013）：尾延迟为何在大规模系统中被放大。
-- DistServe：以 goodput 为优化目标的 prefill/decode 分离设计。
-- [缓存亲和性与负载均衡的取舍](cache-affinity-vs-load-balance.md)
+- Pollux：goodput 这个概念在 DL 集群调度中的出处。
+- [Prefill / Decode 分离](prefill-decode-disaggregation.md) · [缓存亲和性与负载均衡的取舍](cache-affinity-vs-load-balance.md)
