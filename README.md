@@ -34,7 +34,7 @@ mkdocs.yml                   站点配置（新增论文时需同步 nav）
 
 ## 部署
 
-推送到 GitHub 后，[.github/workflows/deploy.yml](.github/workflows/deploy.yml) 会在 `main` 分支每次 push 时自动构建并发布到 `gh-pages` 分支。首次使用需要在仓库 **Settings → Pages** 中把 Source 设为 `Deploy from a branch`，分支选 `gh-pages` / `(root)`。
+推送到 GitHub 后，[.github/workflows/deploy.yml](.github/workflows/deploy.yml) 会在 `main` 分支每次 push 时自动构建并通过 GitHub Actions 发布到 Pages（仓库 **Settings → Pages** 的 Source 已设为 `GitHub Actions`）。
 
 ## 多 agent 并行协作
 
