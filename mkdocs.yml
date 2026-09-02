@@ -62,6 +62,7 @@ nav:
           - vLLM / PagedAttention: topics/llm-serving/2023-vllm-pagedattention/README.md
           - SGLang / RadixAttention: topics/llm-serving/2024-sglang-radixattention/README.md
           - DistServe: topics/llm-serving/2024-distserve/README.md
+          - Mooncake: topics/llm-serving/2025-mooncake/README.md
           - CacheRoute: topics/llm-serving/2026-cacheroute/README.md
       - LLM Training 训练系统:
           - topics/llm-training/README.md
@@ -86,6 +87,7 @@ nav:
       - Prefix Caching: concepts/prefix-caching.md
       - 约束解码: concepts/constrained-decoding.md
       - Prefill / Decode 分离: concepts/prefill-decode-disaggregation.md
+      - KVCache 池化与分层存储: concepts/disaggregated-kv-store.md
       - 缓存亲和性与负载均衡的取舍: concepts/cache-affinity-vs-load-balance.md
       - SLO 容量与 p99 尾延迟: concepts/slo-capacity.md
       - IO-aware 算法设计: concepts/io-aware-kernel-design.md

@@ -2,7 +2,7 @@
 concept: "缓存亲和性与负载均衡的取舍"
 aliases: ["Cache Affinity vs Load Balancing", "locality-load tradeoff"]
 tags: ["distributed-systems", "load-balancing", "caching", "llm-serving"]
-papers: ["topics/llm-serving/2026-cacheroute"]
+papers: ["topics/llm-serving/2026-cacheroute", "topics/llm-serving/2025-mooncake"]
 ---
 
 # 缓存亲和性与负载均衡的取舍
@@ -72,9 +72,10 @@ $$\text{容量} \sim \frac{\text{单机吞吐}}{\text{不均衡度}}, \qquad \te
 ## 出现在哪些论文里
 
 - [CacheRoute](../topics/llm-serving/2026-cacheroute/README.md) —— 把这个取舍量化成周期性规划问题（top-rate 准入 + LPT 放置），并用组件消融证明「亲和性负责回收缓存、放置负责让回收变成容量」；同时给出 win / tie / lose 三个实测运行区间。
+- [Mooncake（FAST'25）](../topics/llm-serving/2025-mooncake/README.md) —— 把两端统一到「预计 TTFT = 执行时间 + 排队时间」这一个标量上做取舍；并用启发式热点迁移替代了它认为不可行的块级使用量预测，使热块复制成为调度的副产品。
 
 ## 延伸阅读
 
 - Consistent Hashing with Bounded Loads（Mirrokni et al., 2018）：这个取舍最经典的理论化处理。
 - Power of Two Choices（Mitzenmacher et al., 2001）：均衡端的标准做法。
-- [Prefix Caching](prefix-caching.md) · [SLO 容量与 p99 尾延迟](slo-capacity.md)
+- [Prefix Caching](prefix-caching.md) · [SLO 容量与 p99 尾延迟](slo-capacity.md) · [KVCache 池化与分层存储](disaggregated-kv-store.md)

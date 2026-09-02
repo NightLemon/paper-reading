@@ -13,13 +13,14 @@
 | [Positional Encoding](positional-encoding.md) | 位置编码、PE | Transformer 架构 | Attention Is All You Need |
 | [残差连接与 Layer Normalization](residual-and-layer-norm.md) | Post-LN、Pre-LN | 训练稳定性 | Attention Is All You Need |
 | [学习率 Warmup](lr-warmup.md) | Noam schedule | 优化与调度 | Attention Is All You Need |
-| [KV Cache](kv-cache.md) | KV 缓存 | 推理与显存 | Attention Is All You Need · vLLM · CacheRoute |
+| [KV Cache](kv-cache.md) | KV 缓存 | 推理与显存 | Attention Is All You Need · vLLM · CacheRoute · Mooncake |
 | [分页式 KV 管理](paged-kv-memory.md) | PagedAttention、block table | 显存管理 | vLLM |
 | [Continuous Batching](continuous-batching.md) | 连续批处理、iteration-level scheduling | 调度 | vLLM |
-| [Prefix Caching](prefix-caching.md) | 前缀缓存、prefix KV reuse | LLM Serving | vLLM · SGLang · CacheRoute |
+| [Prefix Caching](prefix-caching.md) | 前缀缓存、prefix KV reuse | LLM Serving | vLLM · SGLang · CacheRoute · Mooncake |
 | [约束解码](constrained-decoding.md) | Constrained Decoding、结构化输出 | 解码与工程集成 | SGLang |
-| [Prefill / Decode 分离](prefill-decode-disaggregation.md) | PD Disaggregation、阶段分离 | 服务架构 | DistServe |
-| [缓存亲和性与负载均衡的取舍](cache-affinity-vs-load-balance.md) | locality-load tradeoff | 路由与调度 | CacheRoute |
+| [Prefill / Decode 分离](prefill-decode-disaggregation.md) | PD Disaggregation、阶段分离 | 服务架构 | DistServe · Mooncake |
+| [KVCache 池化与分层存储](disaggregated-kv-store.md) | Disaggregated KV Store、KVCache Pool | 服务架构与存储 | Mooncake · CacheRoute |
+| [缓存亲和性与负载均衡的取舍](cache-affinity-vs-load-balance.md) | locality-load tradeoff | 路由与调度 | CacheRoute · Mooncake |
 | [SLO 容量与 p99 尾延迟](slo-capacity.md) | SLO capacity、goodput | 性能评测 | CacheRoute |
 | [IO-aware 算法设计](io-aware-kernel-design.md) | IO-Awareness、tiling | GPU 性能 | 🚧 待接单（FlashAttention） |
 | [张量并行](tensor-parallelism.md) | Tensor Parallelism、TP | 分布式训练 | 🚧 待接单（Megatron-LM） |
