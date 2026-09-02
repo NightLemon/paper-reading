@@ -16,7 +16,8 @@
 | [KV Cache](kv-cache.md) | KV 缓存 | 推理与显存 | Attention Is All You Need · vLLM · CacheRoute |
 | [分页式 KV 管理](paged-kv-memory.md) | PagedAttention、block table | 显存管理 | vLLM |
 | [Continuous Batching](continuous-batching.md) | 连续批处理、iteration-level scheduling | 调度 | vLLM |
-| [Prefix Caching](prefix-caching.md) | 前缀缓存、prefix KV reuse | LLM Serving | vLLM · CacheRoute |
+| [Prefix Caching](prefix-caching.md) | 前缀缓存、prefix KV reuse | LLM Serving | vLLM · SGLang · CacheRoute |
+| [约束解码](constrained-decoding.md) | Constrained Decoding、结构化输出 | 解码与工程集成 | SGLang |
 | [缓存亲和性与负载均衡的取舍](cache-affinity-vs-load-balance.md) | locality-load tradeoff | 路由与调度 | CacheRoute |
 | [SLO 容量与 p99 尾延迟](slo-capacity.md) | SLO capacity、goodput | 性能评测 | CacheRoute |
 | [IO-aware 算法设计](io-aware-kernel-design.md) | IO-Awareness、tiling | GPU 性能 | 🚧 待接单（FlashAttention） |
