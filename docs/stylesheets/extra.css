@@ -1,0 +1,23 @@
+/* 论文笔记正文偏长，放宽内容区宽度并调高行高 */
+.md-grid {
+  max-width: 68rem;
+}
+
+.md-typeset {
+  line-height: 1.75;
+}
+
+/* 元信息表格：左列窄、不换行 */
+.md-typeset table:not([class]) th {
+  white-space: nowrap;
+}
+
+/* 六段式报告的一级分节留出更明显的间隔（分隔线由正文的 --- 提供） */
+.md-typeset h2 {
+  margin-top: 1.6em;
+}
+
+/* 「一句话结论」这类引用块更醒目 */
+.md-typeset blockquote {
+  border-left-width: 3px;
+}

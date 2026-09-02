@@ -1,0 +1,137 @@
+site_name: Paper Reading
+site_description: 计算机与软件系统工程方向的论文精读笔记与知识点沉淀
+site_author: Lemon
+copyright: 笔记内容为个人学习记录；论文原文版权归原作者所有
+
+site_url: https://nightlemon.github.io/paper-reading/
+repo_url: https://github.com/NightLemon/paper-reading
+repo_name: NightLemon/paper-reading
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.tooltips
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到浅色模式
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Noto Sans SC
+    code: JetBrains Mono
+
+nav:
+  - 首页: index.md
+  - 待读队列: reading-list.md
+  - 论文笔记:
+      - Foundations 奠基论文:
+          - topics/foundations/README.md
+          - Attention Is All You Need: topics/foundations/2017-attention-is-all-you-need/README.md
+          - FlashAttention: topics/foundations/2022-flashattention/README.md
+      - LLM Serving 推理服务:
+          - topics/llm-serving/README.md
+          - Orca: topics/llm-serving/2022-orca/README.md
+          - vLLM / PagedAttention: topics/llm-serving/2023-vllm-pagedattention/README.md
+          - CacheRoute: topics/llm-serving/2026-cacheroute/README.md
+      - LLM Training 训练系统:
+          - topics/llm-training/README.md
+          - Megatron-LM: topics/llm-training/2019-megatron-lm/README.md
+      - Distributed Systems 分布式系统:
+          - topics/distributed-systems/README.md
+          - Raft: topics/distributed-systems/2014-raft/README.md
+      - Networking 网络与 RDMA:
+          - topics/networking/README.md
+      - LLM Applications 应用架构:
+          - topics/llm-applications/README.md
+  - 知识点:
+      - concepts/README.md
+      - Self-Attention: concepts/self-attention.md
+      - Multi-Head Attention: concepts/multi-head-attention.md
+      - Positional Encoding: concepts/positional-encoding.md
+      - 残差连接与 Layer Normalization: concepts/residual-and-layer-norm.md
+      - 学习率 Warmup: concepts/lr-warmup.md
+      - KV Cache: concepts/kv-cache.md
+      - 分页式 KV 管理: concepts/paged-kv-memory.md
+      - Continuous Batching: concepts/continuous-batching.md
+      - Prefix Caching: concepts/prefix-caching.md
+      - 缓存亲和性与负载均衡的取舍: concepts/cache-affinity-vs-load-balance.md
+      - SLO 容量与 p99 尾延迟: concepts/slo-capacity.md
+      - IO-aware 算法设计: concepts/io-aware-kernel-design.md
+      - 张量并行: concepts/tensor-parallelism.md
+      - 共识与复制状态机: concepts/consensus-and-replication.md
+
+plugins:
+  - search:
+      # 中文分词依赖 jieba（见 requirements.txt）
+      separator: '[\s\u200b\-]'
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: 🔗
+      toc_depth: 3
+      # 保留中文标题的锚点，避免退化成 #_1 #_2
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra_css:
+  - https://unpkg.com/katex@0/dist/katex.min.css
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
