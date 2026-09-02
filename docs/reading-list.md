@@ -16,6 +16,7 @@
 | Attention Is All You Need | NeurIPS'17 | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) |
 | vLLM / PagedAttention | SOSP'23 | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) |
 | SGLang / RadixAttention | NeurIPS'24 | [笔记](topics/llm-serving/2024-sglang-radixattention/README.md) |
+| DistServe | OSDI'24 | [笔记](topics/llm-serving/2024-distserve/README.md) |
 | CacheRoute | arXiv'26 | [笔记](topics/llm-serving/2026-cacheroute/README.md) |
 
 到这里已经有了完整的一条链：Transformer 架构 → KV Cache → 单机分页管理 → 跨机路由。
@@ -36,8 +37,7 @@
 
 - [x] ⭐⭐ **SGLang: Efficient Execution of Structured Language Model Programs（RadixAttention）** — NeurIPS'24 · [arXiv:2312.07104](https://arxiv.org/abs/2312.07104) · ✅ **已精读** · [笔记](topics/llm-serving/2024-sglang-radixattention/README.md)
 
-- [ ] ⭐⭐ **DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving** — OSDI'24 · [arXiv:2401.09670](https://arxiv.org/abs/2401.09670)
-      *为什么现在读*：vLLM §2.2 指出 prefill 是 compute-bound、decode 是 memory-bound，却把两者放在同一批机器上跑。DistServe 直接把它们拆到不同实例。它也是 goodput 这个指标最重要的推动者，与 [SLO 容量](concepts/slo-capacity.md)直接相关。
+- [x] ⭐⭐ **DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving** — OSDI'24 · [arXiv:2401.09670](https://arxiv.org/abs/2401.09670) · ✅ **已精读** · [笔记](topics/llm-serving/2024-distserve/README.md)
 
 - [ ] ⭐⭐ **Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving** — FAST'25 · [arXiv:2407.00079](https://arxiv.org/abs/2407.00079)
       *为什么现在读*：它是「KV 是本地状态」这个假设的反面——把 KV Cache 做成独立的分布式存储层。与 CacheRoute 的「靠入口路由保住本地 KV」构成两条相反的技术路线，对照读收获最大。
@@ -137,4 +137,5 @@
 | Attention Is All You Need | Foundations | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) | 2026-09-02 |
 | vLLM / PagedAttention | LLM Serving | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) | 2026-09-02 |
 | SGLang / RadixAttention | LLM Serving | [笔记](topics/llm-serving/2024-sglang-radixattention/README.md) | 2026-09-02 |
+| DistServe | LLM Serving | [笔记](topics/llm-serving/2024-distserve/README.md) | 2026-09-02 |
 | CacheRoute | LLM Serving | [笔记](topics/llm-serving/2026-cacheroute/README.md) | 2026-09-02 |
