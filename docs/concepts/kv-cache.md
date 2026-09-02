@@ -2,7 +2,7 @@
 concept: "KV Cache"
 aliases: ["KV 缓存", "Key-Value Cache"]
 tags: ["llm-serving", "inference", "memory"]
-papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/llm-serving/2026-cacheroute"]
+papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/llm-serving/2026-cacheroute", "topics/llm-serving/2025-mooncake"]
 ---
 
 # KV Cache
@@ -62,9 +62,11 @@ $$\text{KV bytes} = 2 \times L \times H_{kv} \times d_{\text{head}} \times n \ti
 - [Attention Is All You Need](../topics/foundations/2017-attention-is-all-you-need/README.md) —— 未讨论推理优化，但其 decoder 的因果 mask 与自回归性质给出了 KV 可缓存的全部依据。
 - [vLLM / PagedAttention](../topics/llm-serving/2023-vllm-pagedattention/README.md) —— 把 KV Cache 从「实现细节」提升为「决定服务吞吐的一等资源」，并给出 800 KB/token 这类可直接复用的容量估算方法。
 - [CacheRoute](../topics/llm-serving/2026-cacheroute/README.md) —— 把「KV Cache 是有位置的状态」这一性质当作路由问题来处理：请求落在哪台机器决定了缓存能否被用上。
+- [Mooncake（FAST'25）](../topics/llm-serving/2025-mooncake/README.md) —— 对同一性质给出相反的应对：把 KV Cache 搬出实例、做成集群级共享存储层。
 
 ## 延伸阅读
 
 - [分页式 KV 管理](paged-kv-memory.md)：KV 的分页分配与共享。
 - MQA / GQA：压缩 K/V 头数。
 - [Prefix Caching](prefix-caching.md)：跨请求复用 KV 的形式。
+- [KVCache 池化与分层存储](disaggregated-kv-store.md)：把 KV 提升为集群级共享资源。

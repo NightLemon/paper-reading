@@ -14,6 +14,7 @@
 | [Efficient Memory Management for LLM Serving with PagedAttention（vLLM）](topics/llm-serving/2023-vllm-pagedattention/README.md) | LLM Serving | 2023 | SOSP'23 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [SGLang: Efficient Execution of Structured Language Model Programs（RadixAttention）](topics/llm-serving/2024-sglang-radixattention/README.md) | LLM Serving | 2024 | NeurIPS'24 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving](topics/llm-serving/2024-distserve/README.md) | LLM Serving | 2024 | OSDI'24 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
+| [Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving](topics/llm-serving/2025-mooncake/README.md) | LLM Serving | 2025 | FAST'25 | ✅ 已完成 | ⭐⭐⭐⭐ |
 | [CacheRoute: Planned Prefix-Affinity Routing for Large-Scale LLM Serving](topics/llm-serving/2026-cacheroute/README.md) | LLM Serving | 2026 | arXiv | ✅ 已完成 | ⭐⭐⭐⭐ |
 | [Orca: A Distributed Serving System for Transformer-Based Generative Models](topics/llm-serving/2022-orca/README.md) | LLM Serving | 2022 | OSDI'22 | 🚧 已派工单 | — |
 | [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](topics/foundations/2022-flashattention/README.md) | Foundations | 2022 | NeurIPS'22 | 🚧 已派工单 | — |
@@ -28,9 +29,10 @@
 
 | 主题 | 说明 | 篇数 |
 | --- | --- | --- |
-| [foundations](topics/foundations/README.md) | 奠基性经典论文 | 1 |
-| [llm-serving](topics/llm-serving/README.md) | LLM 推理服务、调度、KV Cache、请求路由 | 2 || [llm-training](topics/llm-training/README.md) | 训练系统与并行策略 | 0 |
-| [distributed-systems](topics/distributed-systems/README.md) | 分布式系统与共识 | 0 |
+| [foundations](topics/foundations/README.md) | 奠基性经典论文 | 2 |
+| [llm-serving](topics/llm-serving/README.md) | LLM 推理服务、调度、KV Cache、请求路由 | 6 |
+| [llm-training](topics/llm-training/README.md) | 训练系统与并行策略 | 1 |
+| [distributed-systems](topics/distributed-systems/README.md) | 分布式系统与共识 | 1 |
 | [networking](topics/networking/README.md) | 网络、RDMA、集合通信 | 0 |
 | [llm-applications](topics/llm-applications/README.md) | Agent、RAG 等应用架构 | 0 |
 

@@ -2,7 +2,7 @@
 concept: "Prefix Caching"
 aliases: ["前缀缓存", "prefix KV reuse", "automatic prefix caching"]
 tags: ["llm-serving", "inference", "caching"]
-papers: ["topics/llm-serving/2026-cacheroute"]
+papers: ["topics/llm-serving/2026-cacheroute", "topics/llm-serving/2025-mooncake"]
 ---
 
 # Prefix Caching
@@ -63,9 +63,10 @@ papers: ["topics/llm-serving/2026-cacheroute"]
 - [vLLM / PagedAttention](../topics/llm-serving/2023-vllm-pagedattention/README.md) —— §4.4 的 shared prefix 是它最早的系统化实现：服务方预先为一组声明的前缀保留物理块，类比 OS 的共享库。需要手动声明是它的主要缺口。
 - [SGLang / RadixAttention](../topics/llm-serving/2024-sglang-radixattention/README.md) —— 补上了那个缺口：把 KV Cache 当成**基数树上的 LRU 缓存**，请求结束后不丢弃、自动做最长前缀匹配，并用「最长匹配前缀优先」的调度把命中率推到理论最优的 96%。
 - [CacheRoute](../topics/llm-serving/2026-cacheroute/README.md) —— 指出 prefix caching 的第三个前置条件（回到同一台机器）由路由决定，并把它规划成一个周期性的分配问题；同时给出可复用段太小时该优化净亏损的实测反例。
+- [Mooncake（FAST'25）](../topics/llm-serving/2025-mooncake/README.md) —— 用池化的 KVCache 存储层绕开「必须回到同一台机器」这个约束；并给出生产 trace 上的实测：容量无限时命中率收敛到 **0.51**，LRU 优于 LFU 与长度感知策略，**理论可复用上界只有约 50%**。
 
 ## 延伸阅读
 
 - [SGLang RadixAttention](../topics/llm-serving/2024-sglang-radixattention/README.md)：基数树 + 叶子优先 LRU + cache-aware 调度的完整实现。
-- Mooncake / MemServe：把 KV 池化或跨机迁移，绕开「必须回到同一台机器」这个约束。
+- [KVCache 池化与分层存储](disaggregated-kv-store.md)：把 KV 搬到共享层的那条路线。
 - [KV Cache](kv-cache.md) · [分页式 KV 管理](paged-kv-memory.md) · [缓存亲和性与负载均衡的取舍](cache-affinity-vs-load-balance.md)

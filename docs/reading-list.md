@@ -39,8 +39,7 @@
 
 - [x] ⭐⭐ **DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving** — OSDI'24 · [arXiv:2401.09670](https://arxiv.org/abs/2401.09670) · ✅ **已精读** · [笔记](topics/llm-serving/2024-distserve/README.md)
 
-- [ ] ⭐⭐ **Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving** — FAST'25 · [arXiv:2407.00079](https://arxiv.org/abs/2407.00079)
-      *为什么现在读*：它是「KV 是本地状态」这个假设的反面——把 KV Cache 做成独立的分布式存储层。与 CacheRoute 的「靠入口路由保住本地 KV」构成两条相反的技术路线，对照读收获最大。
+- [x] ⭐⭐ **Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving** — FAST'25 · [arXiv:2407.00079](https://arxiv.org/abs/2407.00079) · ✅ **已精读** · [笔记](topics/llm-serving/2025-mooncake/README.md)
 
 - [ ] ⭐ **Sarathi-Serve: Taming Throughput-Latency Tradeoff with Chunked Prefills** — OSDI'24 · [arXiv:2403.02310](https://arxiv.org/abs/2403.02310)
       *为什么读*：解决 continuous batching 里「长 prompt 的 prefill 打断 decode 造成延迟毛刺」这个具体问题。工程味浓，适合在读完 Orca 之后作为补充。
@@ -138,4 +137,5 @@
 | vLLM / PagedAttention | LLM Serving | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) | 2026-09-02 |
 | SGLang / RadixAttention | LLM Serving | [笔记](topics/llm-serving/2024-sglang-radixattention/README.md) | 2026-09-02 |
 | DistServe | LLM Serving | [笔记](topics/llm-serving/2024-distserve/README.md) | 2026-09-02 |
+| Mooncake | LLM Serving | [笔记](topics/llm-serving/2025-mooncake/README.md) | 2026-09-02 |
 | CacheRoute | LLM Serving | [笔记](topics/llm-serving/2026-cacheroute/README.md) | 2026-09-02 |

@@ -2,7 +2,7 @@
 concept: "Prefill / Decode 分离"
 aliases: ["PD Disaggregation", "prefill-decoding disaggregation", "PD 分离", "阶段分离"]
 tags: ["llm-serving", "architecture", "scheduling", "slo"]
-papers: ["topics/llm-serving/2024-distserve"]
+papers: ["topics/llm-serving/2024-distserve", "topics/llm-serving/2025-mooncake"]
 ---
 
 # Prefill / Decode 分离
@@ -96,10 +96,11 @@ KV Cache 必须从 prefill 侧传到 decode 侧，这是分离引入的唯一新
 ## 出现在哪些论文里
 
 - [DistServe](../topics/llm-serving/2024-distserve/README.md) —— 系统论证了分离的必要性（干扰 + 资源耦合），用排队论给出并行策略判据，用模拟器搜索最优 placement，并给出「同 stage 同节点」的放置约束把 KV 传输压进 NVLINK。
+- [Mooncake（FAST'25）](../topics/llm-serving/2025-mooncake/README.md) —— 生产环境的分离实践，补上了两个新问题：长上下文下的跨节点 prefill（分块流水并行 CPP），以及过载下由「两次决策相隔一段时间」引发的 **prefill / decoding 负载反相震荡**。
 
 ## 延伸阅读
 
 - Splitwise、TetriInfer、DéjàVu：同期采用相似分离思路的工作。
 - Sarathi-Serve：chunked-prefill，是分离方案的主要竞争路线。
-- Mooncake：把 KV 做成独立存储层，是另一种解耦方式。
+- [KVCache 池化与分层存储](disaggregated-kv-store.md)：把 KV 做成独立存储层，是另一种解耦方式。
 - [SLO 容量与 p99 尾延迟](slo-capacity.md) · [KV Cache](kv-cache.md) · [张量并行](tensor-parallelism.md)
