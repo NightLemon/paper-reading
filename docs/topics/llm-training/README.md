@@ -4,7 +4,7 @@
 
 | 论文 | 年份 | 来源 | 状态 | 一句话 |
 | --- | --- | --- | --- | --- |
-| [Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism](2019-megatron-lm/README.md) | 2019 | arXiv | 🚧 已派工单 | 待精读 |
+| [Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism](2019-megatron-lm/README.md) | 2019 | arXiv | ✅ 已完成 | 「第一个 GEMM 按列切、第二个按行切」，把每层通信压到前向 2 次 + 反向 2 次 all-reduce |
 
 候选见 [待读队列 · 阶段 3](../../reading-list.md#阶段-3--训练系统与并行策略)。
 

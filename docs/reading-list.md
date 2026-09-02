@@ -27,13 +27,9 @@
 
 读完这一阶段，你能看懂几乎所有 LLM serving 相关的技术讨论与招聘要求。
 
-- [x] ⭐⭐⭐ **Orca: A Distributed Serving System for Transformer-Based Generative Models** — OSDI'22 · 🚧 **已拆成 GitHub Issue，待接单** · [骨架页](topics/llm-serving/2022-orca/README.md)
-      *为什么现在读*：continuous batching（iteration-level scheduling）的出处。vLLM 论文全程把它当既有背景，[Continuous Batching 概念页](concepts/continuous-batching.md)目前也是基于二手描述写的。它和 PagedAttention 是当今每个推理引擎的两块基石。
-      *难度*：中。无 arXiv 版本，只有 OSDI 页面的 PDF。
+- [x] ⭐⭐⭐ **Orca: A Distributed Serving System for Transformer-Based Generative Models** — OSDI'22 · ✅ **已精读** · [笔记](topics/llm-serving/2022-orca/README.md)
 
-- [x] ⭐⭐⭐ **FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness** — NeurIPS'22 · [arXiv:2205.14135](https://arxiv.org/abs/2205.14135) · 🚧 **已拆成 GitHub Issue，待接单** · [骨架页](topics/foundations/2022-flashattention/README.md)
-      *为什么现在读*：Transformer 笔记 §3.4 指出原论文 Table 1 缺了「显存」这一维，FlashAttention 正是补这一维的。它同时是训练和推理 prefill 阶段的标配，vLLM 的 prefill 直接调用它。
-      *难度*：中偏高，需要一点 GPU 存储层次（SRAM / HBM）的概念。读完能掌握「IO-aware 算法设计」这个思路。
+- [x] ⭐⭐⭐ **FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness** — NeurIPS'22 · [arXiv:2205.14135](https://arxiv.org/abs/2205.14135) · ✅ **已精读** · [笔记](topics/foundations/2022-flashattention/README.md)
 
 - [x] ⭐⭐ **SGLang: Efficient Execution of Structured Language Model Programs（RadixAttention）** — NeurIPS'24 · [arXiv:2312.07104](https://arxiv.org/abs/2312.07104) · ✅ **已精读** · [笔记](topics/llm-serving/2024-sglang-radixattention/README.md)
 
@@ -65,8 +61,7 @@
 
 推理看熟之后再来。这一阶段的论文彼此依赖强，建议连着读完。
 
-- [x] ⭐⭐⭐ **Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism** · [arXiv:1909.08053](https://arxiv.org/abs/1909.08053) · 🚧 **已拆成 GitHub Issue，待接单** · [骨架页](topics/llm-training/2019-megatron-lm/README.md)
-      *为什么读*：张量并行的出处。vLLM §4.6 直接说「支持 Megatron-LM 式的张量并行」，CacheRoute 的一个 destination 就是一个 TP2 组。不读这篇，「TP2」只是个符号。
+- [x] ⭐⭐⭐ **Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism** · [arXiv:1909.08053](https://arxiv.org/abs/1909.08053) · ✅ **已精读** · [笔记](topics/llm-training/2019-megatron-lm/README.md)
 
 - [ ] ⭐⭐⭐ **ZeRO: Memory Optimizations Toward Training Trillion Parameter Models** — SC'20 · [arXiv:1910.02054](https://arxiv.org/abs/1910.02054)
       *为什么读*：训练侧的显存优化范式，与 vLLM 在推理侧做的事精神一致——都是「显存是瓶颈，靠切分与按需分配解决」。DeepSpeed 的核心。
@@ -82,8 +77,7 @@
 
 计算机系统的通识，与 LLM 无关但决定你理解系统论文的深度。可以长期慢读。
 
-- [x] ⭐⭐⭐ **In Search of an Understandable Consensus Algorithm（Raft）** — ATC'14 · 🚧 **已拆成 GitHub Issue，待接单** · [骨架页](topics/distributed-systems/2014-raft/README.md)
-      *为什么读*：共识算法的最佳入门，论文本身以「可理解性」为设计目标，对新人极友好。
+- [x] ⭐⭐⭐ **In Search of an Understandable Consensus Algorithm（Raft）** — ATC'14 · ✅ **已精读** · [笔记](topics/distributed-systems/2014-raft/README.md)
 
 - [ ] ⭐⭐⭐ **MapReduce: Simplified Data Processing on Large Clusters** — OSDI'04
       *为什么读*：分布式计算的思维起点。篇幅短、思想清晰，是理解「把复杂度藏进框架」这一范式的最佳样本。
@@ -133,7 +127,11 @@
 
 | 论文 | 主题 | 笔记 | 完成日期 |
 | --- | --- | --- | --- |
+| In Search of an Understandable Consensus Algorithm（Raft） | Distributed Systems | [笔记](topics/distributed-systems/2014-raft/README.md) | 2026-09-02 |
 | Attention Is All You Need | Foundations | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) | 2026-09-02 |
+| Megatron-LM | LLM Training | [笔记](topics/llm-training/2019-megatron-lm/README.md) | 2026-09-02 |
+| Orca | LLM Serving | [笔记](topics/llm-serving/2022-orca/README.md) | 2026-09-02 |
+| FlashAttention | Foundations | [笔记](topics/foundations/2022-flashattention/README.md) | 2026-09-02 |
 | vLLM / PagedAttention | LLM Serving | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) | 2026-09-02 |
 | SGLang / RadixAttention | LLM Serving | [笔记](topics/llm-serving/2024-sglang-radixattention/README.md) | 2026-09-02 |
 | DistServe | LLM Serving | [笔记](topics/llm-serving/2024-distserve/README.md) | 2026-09-02 |
