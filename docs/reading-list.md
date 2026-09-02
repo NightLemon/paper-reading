@@ -15,6 +15,7 @@
 | --- | --- | --- |
 | Attention Is All You Need | NeurIPS'17 | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) |
 | vLLM / PagedAttention | SOSP'23 | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) |
+| SGLang / RadixAttention | NeurIPS'24 | [笔记](topics/llm-serving/2024-sglang-radixattention/README.md) |
 | CacheRoute | arXiv'26 | [笔记](topics/llm-serving/2026-cacheroute/README.md) |
 
 到这里已经有了完整的一条链：Transformer 架构 → KV Cache → 单机分页管理 → 跨机路由。
@@ -33,8 +34,7 @@
       *为什么现在读*：Transformer 笔记 §3.4 指出原论文 Table 1 缺了「显存」这一维，FlashAttention 正是补这一维的。它同时是训练和推理 prefill 阶段的标配，vLLM 的 prefill 直接调用它。
       *难度*：中偏高，需要一点 GPU 存储层次（SRAM / HBM）的概念。读完能掌握「IO-aware 算法设计」这个思路。
 
-- [ ] ⭐⭐ **SGLang: Efficient Execution of Structured Language Model Programs（RadixAttention）** — NeurIPS'24 · [arXiv:2312.07104](https://arxiv.org/abs/2312.07104)
-      *为什么现在读*：补上 vLLM §4.4 那个明确的缺口——共享 prefix 需要**手动声明**。RadixAttention 用基数树做**自动**前缀复用。读完 [Prefix Caching](concepts/prefix-caching.md) 就从原理补到了工程实现。
+- [x] ⭐⭐ **SGLang: Efficient Execution of Structured Language Model Programs（RadixAttention）** — NeurIPS'24 · [arXiv:2312.07104](https://arxiv.org/abs/2312.07104) · ✅ **已精读** · [笔记](topics/llm-serving/2024-sglang-radixattention/README.md)
 
 - [ ] ⭐⭐ **DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving** — OSDI'24 · [arXiv:2401.09670](https://arxiv.org/abs/2401.09670)
       *为什么现在读*：vLLM §2.2 指出 prefill 是 compute-bound、decode 是 memory-bound，却把两者放在同一批机器上跑。DistServe 直接把它们拆到不同实例。它也是 goodput 这个指标最重要的推动者，与 [SLO 容量](concepts/slo-capacity.md)直接相关。
@@ -136,4 +136,5 @@
 | --- | --- | --- | --- |
 | Attention Is All You Need | Foundations | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) | 2026-09-02 |
 | vLLM / PagedAttention | LLM Serving | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) | 2026-09-02 |
+| SGLang / RadixAttention | LLM Serving | [笔记](topics/llm-serving/2024-sglang-radixattention/README.md) | 2026-09-02 |
 | CacheRoute | LLM Serving | [笔记](topics/llm-serving/2026-cacheroute/README.md) | 2026-09-02 |

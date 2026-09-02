@@ -60,6 +60,7 @@ nav:
           - topics/llm-serving/README.md
           - Orca: topics/llm-serving/2022-orca/README.md
           - vLLM / PagedAttention: topics/llm-serving/2023-vllm-pagedattention/README.md
+          - SGLang / RadixAttention: topics/llm-serving/2024-sglang-radixattention/README.md
           - CacheRoute: topics/llm-serving/2026-cacheroute/README.md
       - LLM Training 训练系统:
           - topics/llm-training/README.md
@@ -82,6 +83,7 @@ nav:
       - 分页式 KV 管理: concepts/paged-kv-memory.md
       - Continuous Batching: concepts/continuous-batching.md
       - Prefix Caching: concepts/prefix-caching.md
+      - 约束解码: concepts/constrained-decoding.md
       - 缓存亲和性与负载均衡的取舍: concepts/cache-affinity-vs-load-balance.md
       - SLO 容量与 p99 尾延迟: concepts/slo-capacity.md
       - IO-aware 算法设计: concepts/io-aware-kernel-design.md
