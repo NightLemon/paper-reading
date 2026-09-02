@@ -1,0 +1,2969 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="计算机与软件系统工程方向的论文精读笔记与知识点沉淀">
+      
+      
+        <meta name="author" content="Lemon">
+      
+      
+        <link rel="canonical" href="https://nightlemon.github.io/paper-reading/topics/foundations/2017-attention-is-all-you-need/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../2022-flashattention/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Attention Is All You Need - Paper Reading</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans+SC:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Noto Sans SC";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://unpkg.com/katex@0/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#attention-is-all-you-need" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../.." title="Paper Reading" class="md-header__button md-logo" aria-label="Paper Reading" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Paper Reading
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Attention Is All You Need
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/NightLemon/paper-reading" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NightLemon/paper-reading
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Paper Reading" class="md-nav__button md-logo" aria-label="Paper Reading" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Paper Reading
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/NightLemon/paper-reading" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NightLemon/paper-reading
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reading-list/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    待读队列
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    论文笔记
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    论文笔记
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Foundations 奠基论文
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Foundations 奠基论文
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attention Is All You Need
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attention Is All You Need
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-元信息" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 元信息
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-摘要速览5-分钟版" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 摘要速览（5 分钟版）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 摘要速览（5 分钟版）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-要解决的问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 要解决的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-核心方法" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 核心方法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-主要结果" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 主要结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-我的评价" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 我的评价
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-细读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 细读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 细读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Introduction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Background
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-model-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Model Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-why-self-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Why Self-Attention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Training
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-关键问题解析" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 关键问题解析
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 关键问题解析">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q1-为什么-scaled-dot-product-attention-要除以-sqrtd_k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q1: 为什么 scaled dot-product attention 要除以 \(\sqrt{d_k}\)？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q2-multi-head-相比单个大-head-到底多了什么表达能力" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q2: Multi-head 相比单个大 head 到底多了什么表达能力？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q3-正弦式-positional-encoding-的设计动机是什么和学习式相比取舍在哪" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q3: 正弦式 positional encoding 的设计动机是什么？和学习式相比取舍在哪？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q4-decoder-的-masked-self-attention-如何保证自回归性质" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q4: Decoder 的 masked self-attention 如何保证自回归性质？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q5-4-用三项指标论证-self-attention-优于-rnncnn这个论证在什么条件下会失效" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q5: §4 用三项指标论证 self-attention 优于 RNN/CNN，这个论证在什么条件下会失效？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q6-既然-attention-已经能混合全局信息为什么每层还需要-ffn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q6: 既然 attention 已经能混合全局信息，为什么每层还需要 FFN？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q7-embedding-权重为什么要乘-sqrtd_textmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q7: Embedding 权重为什么要乘 \(\sqrt{d_{\text{model}}}\)？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q8-学习率-warmup-是必需的吗" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q8: 学习率 warmup 是必需的吗？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-可迁移的知识点" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 可迁移的知识点
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-批判与开放问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 批判与开放问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 批判与开放问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-局限性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 局限性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-我的质疑" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 我的质疑
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-后续可读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 后续可读
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2022-flashattention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlashAttention
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../llm-serving/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Serving 推理服务
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM Serving 推理服务
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm-serving/2022-orca/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orca
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm-serving/2023-vllm-pagedattention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vLLM / PagedAttention
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm-serving/2026-cacheroute/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CacheRoute
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../llm-training/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Training 训练系统
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM Training 训练系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm-training/2019-megatron-lm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Megatron-LM
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../distributed-systems/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Systems 分布式系统
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Distributed Systems 分布式系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../distributed-systems/2014-raft/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raft
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../networking/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking 网络与 RDMA
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Networking 网络与 RDMA
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../llm-applications/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Applications 应用架构
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM Applications 应用架构
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../concepts/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    知识点
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    知识点
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/self-attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/multi-head-attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Head Attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/positional-encoding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Positional Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/residual-and-layer-norm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    残差连接与 Layer Normalization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/lr-warmup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    学习率 Warmup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/kv-cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KV Cache
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/paged-kv-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分页式 KV 管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/continuous-batching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Batching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/prefix-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prefix Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/cache-affinity-vs-load-balance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    缓存亲和性与负载均衡的取舍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/slo-capacity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SLO 容量与 p99 尾延迟
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/io-aware-kernel-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IO-aware 算法设计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/tensor-parallelism/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    张量并行
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/consensus-and-replication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    共识与复制状态机
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-元信息" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 元信息
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-摘要速览5-分钟版" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 摘要速览（5 分钟版）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 摘要速览（5 分钟版）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-要解决的问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 要解决的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-核心方法" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 核心方法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-主要结果" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 主要结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-我的评价" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 我的评价
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-细读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 细读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 细读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Introduction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Background
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-model-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Model Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-why-self-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Why Self-Attention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Training
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-关键问题解析" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 关键问题解析
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 关键问题解析">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q1-为什么-scaled-dot-product-attention-要除以-sqrtd_k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q1: 为什么 scaled dot-product attention 要除以 \(\sqrt{d_k}\)？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q2-multi-head-相比单个大-head-到底多了什么表达能力" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q2: Multi-head 相比单个大 head 到底多了什么表达能力？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q3-正弦式-positional-encoding-的设计动机是什么和学习式相比取舍在哪" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q3: 正弦式 positional encoding 的设计动机是什么？和学习式相比取舍在哪？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q4-decoder-的-masked-self-attention-如何保证自回归性质" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q4: Decoder 的 masked self-attention 如何保证自回归性质？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q5-4-用三项指标论证-self-attention-优于-rnncnn这个论证在什么条件下会失效" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q5: §4 用三项指标论证 self-attention 优于 RNN/CNN，这个论证在什么条件下会失效？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q6-既然-attention-已经能混合全局信息为什么每层还需要-ffn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q6: 既然 attention 已经能混合全局信息，为什么每层还需要 FFN？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q7-embedding-权重为什么要乘-sqrtd_textmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q7: Embedding 权重为什么要乘 \(\sqrt{d_{\text{model}}}\)？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q8-学习率-warmup-是必需的吗" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q8: 学习率 warmup 是必需的吗？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-可迁移的知识点" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 可迁移的知识点
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-批判与开放问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 批判与开放问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 批判与开放问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-局限性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 局限性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-我的质疑" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 我的质疑
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-后续可读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 后续可读
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="attention-is-all-you-need">Attention Is All You Need<a class="headerlink" href="#attention-is-all-you-need" title="Permanent link">🔗</a></h1>
+<blockquote>
+<p><strong>一句话结论</strong>：去掉循环与卷积，只用 attention 搭建 encoder-decoder，把「关联任意两个位置」的顺序操作数从 <span class="arithmatex">\(O(n)\)</span> 降到 <span class="arithmatex">\(O(1)\)</span>，让训练在样本内部完全并行；代价是每层复杂度从 <span class="arithmatex">\(O(n \cdot d^2)\)</span> 变成 <span class="arithmatex">\(O(n^2 \cdot d)\)</span>——这个代价在 2017 年的句子级任务上可以忽略，在今天的长上下文场景下成为主要矛盾。</p>
+</blockquote>
+<hr />
+<h2 id="1-元信息">1. 元信息<a class="headerlink" href="#1-元信息" title="Permanent link">🔗</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作者 / 机构</td>
+<td>Vaswani 等 8 人 · Google Brain / Google Research / University of Toronto</td>
+</tr>
+<tr>
+<td>发表</td>
+<td>NeurIPS 2017（arXiv:1706.03762，2017-06 首次提交，当前 v7）</td>
+</tr>
+<tr>
+<td>原文</td>
+<td><a href="paper.pdf">PDF</a> · <a href="paper.html">HTML</a> · <a href="https://arxiv.org/abs/1706.03762">arXiv</a></td>
+</tr>
+<tr>
+<td>代码</td>
+<td><a href="https://github.com/tensorflow/tensor2tensor">tensorflow/tensor2tensor</a></td>
+</tr>
+<tr>
+<td>关键词</td>
+<td>Transformer · self-attention · multi-head attention · positional encoding</td>
+</tr>
+<tr>
+<td>前置知识</td>
+<td>seq2seq、encoder-decoder、RNN/LSTM 的顺序依赖问题、BLEU</td>
+</tr>
+<tr>
+<td>实验条件</td>
+<td>WMT 2014 EN-DE / EN-FR，8× NVIDIA P100，单机</td>
+</tr>
+</tbody>
+</table>
+<p><strong>记号约定</strong>（沿用论文）：<span class="arithmatex">\(n\)</span> 序列长度，<span class="arithmatex">\(d\)</span> / <span class="arithmatex">\(d_{\text{model}}\)</span> 表示维度，<span class="arithmatex">\(h\)</span> 头数，<span class="arithmatex">\(d_k\)</span> / <span class="arithmatex">\(d_v\)</span> 单头的 key / value 维度，<span class="arithmatex">\(k\)</span> 卷积核宽度，<span class="arithmatex">\(r\)</span> 受限注意力的邻域大小。</p>
+<hr />
+<h2 id="2-摘要速览5-分钟版">2. 摘要速览（5 分钟版）<a class="headerlink" href="#2-摘要速览5-分钟版" title="Permanent link">🔗</a></h2>
+<h3 id="21-要解决的问题">2.1 要解决的问题<a class="headerlink" href="#21-要解决的问题" title="Permanent link">🔗</a></h3>
+<p>循环模型把计算沿序列位置展开，隐状态满足 <span class="arithmatex">\(h_t = f(h_{t-1}, x_t)\)</span>。这条依赖链使<strong>同一个训练样本内部无法并行</strong>：第 <span class="arithmatex">\(t\)</span> 步必须等第 <span class="arithmatex">\(t-1\)</span> 步算完。序列越长这个约束越致命，因为显存限制了「靠加大 batch 跨样本并行」这条补救路径。论文明确指出，factorization tricks 与 conditional computation 绕开了部分开销，顺序计算这个根本约束仍在。</p>
+<p>当时 attention 已被广泛用于建模任意距离的依赖，但除极少数工作外，它都<strong>作为 RNN 的附加组件</strong>存在。另一条 CNN 路线（Extended Neural GPU、ByteNet、ConvS2S）能并行，但关联两个位置所需的操作数随距离增长——ConvS2S 线性、ByteNet 对数——远距离依赖依然难学。</p>
+<h3 id="22-核心方法">2.2 核心方法<a class="headerlink" href="#22-核心方法" title="Permanent link">🔗</a></h3>
+<p>Transformer 完全去掉 recurrence 与 convolution，只保留 attention。</p>
+<ul>
+<li><strong>结构</strong>：encoder 与 decoder 各 <span class="arithmatex">\(N=6\)</span> 层。encoder 每层两个子层（multi-head self-attention + position-wise FFN），decoder 每层三个子层（多一个对 encoder 输出的 multi-head attention）。每个子层外包残差与层归一化：<span class="arithmatex">\(\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))\)</span>。</li>
+<li><strong>注意力</strong>：scaled dot-product，<span class="arithmatex">\(\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right)V\)</span>。缩放因子 <span class="arithmatex">\(1/\sqrt{d_k}\)</span> 阻止大 <span class="arithmatex">\(d_k\)</span> 下点积量级过大把 softmax 推进饱和区。</li>
+<li><strong>多头</strong>：<span class="arithmatex">\(h=8\)</span>，<span class="arithmatex">\(d_k = d_v = d_{\text{model}}/h = 64\)</span>。每头维度按比例缩小，<strong>总计算量与全维单头相当</strong>。</li>
+<li><strong>位置信息</strong>：固定的正余弦编码直接加到 embedding 上，波长构成 <span class="arithmatex">\(2\pi \to 10000 \cdot 2\pi\)</span> 的几何级数。</li>
+<li><strong>自回归</strong>：decoder 的 self-attention 把非法连接在 softmax 之前置为 <span class="arithmatex">\(-\infty\)</span>，配合输出 embedding 右移一位，保证位置 <span class="arithmatex">\(i\)</span> 只依赖 <span class="arithmatex">\(&lt;i\)</span> 的输出。</li>
+</ul>
+<h3 id="23-主要结果">2.3 主要结果<a class="headerlink" href="#23-主要结果" title="Permanent link">🔗</a></h3>
+<p>实验条件：WMT 2014 newstest2014 测试集，8× P100 单机，beam size 4，length penalty <span class="arithmatex">\(\alpha = 0.6\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>参数量</th>
+<th>训练</th>
+<th>EN-DE BLEU</th>
+<th>EN-FR BLEU</th>
+<th>训练成本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transformer (base)</td>
+<td>65M</td>
+<td>100K 步 / 12 小时</td>
+<td>27.3</td>
+<td>38.1</td>
+<td><span class="arithmatex">\(3.3 \times 10^{18}\)</span> FLOPs</td>
+</tr>
+<tr>
+<td>Transformer (big)</td>
+<td>213M</td>
+<td>300K 步 / 3.5 天</td>
+<td><strong>28.4</strong></td>
+<td><strong>41.8</strong></td>
+<td><span class="arithmatex">\(2.3 \times 10^{19}\)</span> FLOPs</td>
+</tr>
+</tbody>
+</table>
+<p>big 模型在 EN-DE 上比此前最好结果（<strong>包括 ensemble</strong>）高出 2.0 BLEU 以上；base 模型已超过此前所有已发表的单模型与 ensemble，训练成本只是竞品的一小部分。</p>
+<p>迁移到英文句法成分分析（WSJ Section 23）：4 层 <span class="arithmatex">\(d_{\text{model}}=1024\)</span> 的模型仅用 4 万句 WSJ 训练得 <strong>91.3 F1</strong>（超过 BerkeleyParser 的 90.4），半监督设置下 <strong>92.7 F1</strong>，仅次于生成式 RNNG 的 93.3。</p>
+<h3 id="24-我的评价">2.4 我的评价<a class="headerlink" href="#24-我的评价" title="Permanent link">🔗</a></h3>
+<p>必读，且 §3.2 与 §4 要逐句读。价值有两层：</p>
+<ol>
+<li><strong>架构本身</strong>是之后所有 LLM 的底座。今天讨论 KV Cache、prefix caching、PD 分离时用到的每一个结构假设，都来自这篇论文的 §3.1 与 §3.2。</li>
+<li><strong>论证方式</strong>值得学。§4 用「每层复杂度、最小顺序操作数、最长依赖路径」三个可量化指标，把「该用哪种层」从审美问题变成可比较的工程问题。这种把架构选择还原成资源账的写法，在系统论文里同样适用。</li>
+</ol>
+<p>对做 serving 的人，最关键的一句在 §3.1 的 Decoder 段落：位置 <span class="arithmatex">\(i\)</span> 的预测只依赖 <span class="arithmatex">\(&lt;i\)</span> 的输出。这意味着解码到第 <span class="arithmatex">\(t\)</span> 步时，前 <span class="arithmatex">\(t-1\)</span> 个位置的 <span class="arithmatex">\(K\)</span> 与 <span class="arithmatex">\(V\)</span> <strong>不会因为新 token 的加入而改变</strong>，因此可以缓存复用——这就是 KV Cache 的全部依据。论文本身没有讨论推理优化，但整条推理优化路线的前提就写在这里。</p>
+<hr />
+<h2 id="3-细读">3. 细读<a class="headerlink" href="#3-细读" title="Permanent link">🔗</a></h2>
+<h3 id="31-introduction">3.1 Introduction<a class="headerlink" href="#31-introduction" title="Permanent link">🔗</a></h3>
+<p>论文的论证起点是<strong>训练的可并行性</strong>。</p>
+<ul>
+<li>RNN / LSTM / GRU 把计算沿位置展开，<span class="arithmatex">\(h_t\)</span> 是 <span class="arithmatex">\(h_{t-1}\)</span> 与位置 <span class="arithmatex">\(t\)</span> 输入的函数。这种「计算步与序列位置对齐」的做法从根本上排除了样本内并行。</li>
+<li>通常的补救是跨样本 batching，但序列变长时显存首先成为瓶颈，batch 开不大，硬件填不满。</li>
+<li>已有的效率改进（factorization tricks、conditional computation）绕开了部分开销，顺序计算这个根本约束仍在。</li>
+<li>attention 允许建模不依赖距离的依赖关系，但当时几乎总是<strong>与循环网络配合</strong>使用。</li>
+<li>本文提出的 Transformer 完全依赖 attention 建立输入输出之间的全局依赖，在 8 张 P100 上训练 12 小时即可达到新的翻译 SOTA。</li>
+</ul>
+<blockquote>
+<p><strong>批注</strong>：这一节把并行性而非精度放在首位。这解释了为什么论文所有对比表格都带训练成本一列——它主张的是同等或更好质量下的成本优势。</p>
+</blockquote>
+<h3 id="32-background">3.2 Background<a class="headerlink" href="#32-background" title="Permanent link">🔗</a></h3>
+<p>这一节交代与 CNN 路线的关系，并<strong>第一次给出 multi-head 的动机</strong>。</p>
+<ul>
+<li>Extended Neural GPU、ByteNet、ConvS2S 都用 CNN 做基础构件，可对所有位置并行计算隐表示。但关联任意两个位置所需的操作数随距离增长：ConvS2S 线性，ByteNet 对数。距离越远越难学。</li>
+<li>Transformer 把这个操作数降到<strong>常数</strong>。代价是：注意力对加权位置做平均，会<strong>降低有效分辨率</strong>（reduced effective resolution）。论文明确说 multi-head attention 就是用来抵消这个效应的。</li>
+<li>self-attention（intra-attention）此前已在阅读理解、抽象摘要、文本蕴含、任务无关句表示等任务上取得成功。</li>
+<li>论文自我定位：据作者所知，Transformer 是<strong>第一个完全依靠 self-attention 计算输入输出表示、不使用序列对齐 RNN 或卷积</strong>的转导模型。</li>
+</ul>
+<blockquote>
+<p><strong>批注</strong>：multi-head 在这里的动机是「补偿加权平均导致的分辨率损失」，比 §3.2.2 里那句更常被引用的「不同表示子空间」具体得多。两处动机指向同一件事：单个 softmax 分布只能产生一个凸组合，信息被压平了。</p>
+</blockquote>
+<h3 id="33-model-architecture">3.3 Model Architecture<a class="headerlink" href="#33-model-architecture" title="Permanent link">🔗</a></h3>
+<p>整体沿用 encoder-decoder：encoder 把符号序列 <span class="arithmatex">\((x_1, \dots, x_n)\)</span> 映射到连续表示 <span class="arithmatex">\(\mathbf{z} = (z_1, \dots, z_n)\)</span>；decoder 在给定 <span class="arithmatex">\(\mathbf{z}\)</span> 后逐个生成 <span class="arithmatex">\((y_1, \dots, y_m)\)</span>，每一步都是自回归的——消费上一步自己生成的符号作为额外输入。</p>
+<pre class="mermaid"><code>graph TD
+    IN["Input Embedding + PE"] --&gt; E1
+    subgraph ENC["Encoder × 6"]
+        E1["Multi-Head Self-Attention"] --&gt; E2["Add + Norm"]
+        E2 --&gt; E3["Position-wise FFN"]
+        E3 --&gt; E4["Add + Norm"]
+    end
+    OE["Output Embedding (右移一位) + PE"] --&gt; D1
+    subgraph DEC["Decoder × 6"]
+        D1["Masked Multi-Head Self-Attention"] --&gt; D2["Add + Norm"]
+        D2 --&gt; D3["Encoder-Decoder Attention"]
+        D3 --&gt; D4["Add + Norm"]
+        D4 --&gt; D5["Position-wise FFN"]
+        D5 --&gt; D6["Add + Norm"]
+    end
+    E4 -- "K, V" --&gt; D3
+    D6 --&gt; OUT["Linear + Softmax"]</code></pre>
+<h4 id="331-encoder-and-decoder-stacks">3.3.1 Encoder and Decoder Stacks<a class="headerlink" href="#331-encoder-and-decoder-stacks" title="Permanent link">🔗</a></h4>
+<p><strong>Encoder</strong>：<span class="arithmatex">\(N=6\)</span> 个相同的层。每层两个子层——multi-head self-attention 与 position-wise 全连接前馈网络。每个子层外包残差连接与层归一化，输出为 <span class="arithmatex">\(\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))\)</span>。为了让残差能相加，<strong>所有子层与 embedding 层的输出维度统一为 <span class="arithmatex">\(d_{\text{model}} = 512\)</span></strong>。</p>
+<p><strong>Decoder</strong>：同样 <span class="arithmatex">\(N=6\)</span> 层。除 encoder 的两个子层外，插入第三个子层，对 encoder 栈的输出做 multi-head attention。同样使用残差与层归一化。self-attention 子层被修改为<strong>禁止关注后续位置</strong>；这个 mask 与「输出 embedding 右移一位」共同保证位置 <span class="arithmatex">\(i\)</span> 的预测只依赖位置 <span class="arithmatex">\(&lt;i\)</span> 的已知输出。</p>
+<blockquote>
+<p><strong>批注</strong>：<code>LayerNorm(x + Sublayer(x))</code> 是 <strong>Post-LN</strong> —— 归一化在残差相加之后。这个细节决定了 §5.3 为什么必须用 warmup（见 Q8）。今天多数实现改用了 Pre-LN，这不是本文的内容。</p>
+</blockquote>
+<h4 id="332-attentionscaled-dot-product--multi-head">3.3.2 Attention（Scaled Dot-Product / Multi-Head）<a class="headerlink" href="#332-attentionscaled-dot-product--multi-head" title="Permanent link">🔗</a></h4>
+<p><strong>通用定义</strong>：attention 把一个 query 和一组 key-value 对映射到输出。query、key、value、输出都是向量。输出是 values 的<strong>加权和</strong>，每个 value 的权重由 query 与对应 key 的兼容函数（compatibility function）算出。</p>
+<p><strong>Scaled Dot-Product Attention</strong>（式 1）：</p>
+<div class="arithmatex">\[\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right)V\]</div>
+<p>query 与 key 维度为 <span class="arithmatex">\(d_k\)</span>，value 维度为 <span class="arithmatex">\(d_v\)</span>。实践中把多个 query 打包成矩阵 <span class="arithmatex">\(Q\)</span>，key 与 value 打包成 <span class="arithmatex">\(K\)</span>、<span class="arithmatex">\(V\)</span>，一次矩阵运算算完。</p>
+<p><strong>为什么用点积而非加性注意力</strong>：两者理论复杂度相近，但点积可直接调用高度优化的矩阵乘法实现，实际更快、更省空间。</p>
+<p><strong>为什么要除以 <span class="arithmatex">\(\sqrt{d_k}\)</span></strong>：论文观察到，<span class="arithmatex">\(d_k\)</span> 小时两种注意力表现相近，<span class="arithmatex">\(d_k\)</span> 大时<strong>未缩放的点积注意力反而不如加性注意力</strong>。作者的猜测（原文 "We suspect"）是：<span class="arithmatex">\(d_k\)</span> 大时点积量级变大，把 softmax 推到梯度极小的区域。脚注给出量级论证——设 <span class="arithmatex">\(q\)</span>、<span class="arithmatex">\(k\)</span> 的各分量是均值 0、方差 1 的独立随机变量，则 <span class="arithmatex">\(q \cdot k = \sum_{i=1}^{d_k} q_i k_i\)</span> 的均值为 0、<strong>方差为 <span class="arithmatex">\(d_k\)</span></strong>。除以 <span class="arithmatex">\(\sqrt{d_k}\)</span> 正好把方差归一化回 1。</p>
+<p><strong>Multi-Head Attention</strong>（式 2）：</p>
+<div class="arithmatex">\[\mathrm{MultiHead}(Q,K,V) = \mathrm{Concat}(\mathrm{head}_1, \dots, \mathrm{head}_h)W^O\]</div>
+<div class="arithmatex">\[\text{where}\quad \mathrm{head}_i = \mathrm{Attention}(QW_i^Q,\; KW_i^K,\; VW_i^V)\]</div>
+<p>投影矩阵 <span class="arithmatex">\(W_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}\)</span>，<span class="arithmatex">\(W_i^K \in \mathbb{R}^{d_{\text{model}} \times d_k}\)</span>，<span class="arithmatex">\(W_i^V \in \mathbb{R}^{d_{\text{model}} \times d_v}\)</span>，<span class="arithmatex">\(W^O \in \mathbb{R}^{hd_v \times d_{\text{model}}}\)</span>。</p>
+<p>本文取 <span class="arithmatex">\(h = 8\)</span>，<span class="arithmatex">\(d_k = d_v = d_{\text{model}}/h = 64\)</span>。<strong>由于每个头的维度按比例减少，总计算成本与全维单头注意力相近。</strong> 论文给出的动机：multi-head 让模型能在不同位置上联合关注来自不同表示子空间的信息；单头时平均会抑制这一点。</p>
+<p><strong>三种用法</strong>（§3.2.3）：</p>
+<table>
+<thead>
+<tr>
+<th>用法</th>
+<th>Query 来源</th>
+<th>Key / Value 来源</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>encoder-decoder attention</td>
+<td>decoder 上一层</td>
+<td>encoder 栈的输出</td>
+<td>decoder 每个位置可关注输入序列全部位置</td>
+</tr>
+<tr>
+<td>encoder self-attention</td>
+<td>encoder 上一层</td>
+<td>encoder 上一层</td>
+<td>encoder 每个位置可关注前一层全部位置</td>
+</tr>
+<tr>
+<td>decoder masked self-attention</td>
+<td>decoder 上一层</td>
+<td>decoder 上一层</td>
+<td>每个位置只能关注到<strong>含自身在内</strong>的此前位置</td>
+</tr>
+</tbody>
+</table>
+<p>mask 的实现方式写得很具体：在 scaled dot-product attention <strong>内部</strong>，把 softmax 输入中对应非法连接的全部值置为 <span class="arithmatex">\(-\infty\)</span>。</p>
+<h4 id="333-position-wise-feed-forward-networks">3.3.3 Position-wise Feed-Forward Networks<a class="headerlink" href="#333-position-wise-feed-forward-networks" title="Permanent link">🔗</a></h4>
+<p>除注意力子层外，encoder 与 decoder 的每层都含一个全连接前馈网络，<strong>逐位置分别且相同地</strong>应用。它由两个线性变换与中间的 ReLU 组成（式 2）：</p>
+<div class="arithmatex">\[\mathrm{FFN}(x) = \max(0,\; xW_1 + b_1)W_2 + b_2\]</div>
+<p>线性变换在不同位置之间相同，在<strong>不同层之间不同</strong>。另一种描述是两个 kernel size 为 1 的卷积。维度：输入输出 <span class="arithmatex">\(d_{\text{model}} = 512\)</span>，内层 <span class="arithmatex">\(d_{ff} = 2048\)</span>。</p>
+<blockquote>
+<p><strong>批注</strong>：Transformer 的职责分离在这里体现得很清楚——<strong>跨位置的信息交换只发生在 attention 子层，逐位置的特征变换只发生在 FFN 子层</strong>。这使得参数量的大头（FFN 每层约 <span class="arithmatex">\(2 \times 512 \times 2048 \approx 2.1\text{M}\)</span>，约占单层参数三分之二）与序列长度无关。</p>
+</blockquote>
+<h4 id="334-embeddings-and-softmax">3.3.4 Embeddings and Softmax<a class="headerlink" href="#334-embeddings-and-softmax" title="Permanent link">🔗</a></h4>
+<p>用学习得到的 embedding 把输入输出 token 转成 <span class="arithmatex">\(d_{\text{model}}\)</span> 维向量，用常规的学习线性变换加 softmax 把 decoder 输出转成下一 token 的概率。两处细节：</p>
+<ul>
+<li><strong>两个 embedding 层与 pre-softmax 线性变换共享同一权重矩阵</strong>。</li>
+<li>在 embedding 层中，把这些权重<strong>乘以 <span class="arithmatex">\(\sqrt{d_{\text{model}}}\)</span></strong>（论文未给出理由，见 Q7）。</li>
+</ul>
+<h4 id="335-positional-encoding">3.3.5 Positional Encoding<a class="headerlink" href="#335-positional-encoding" title="Permanent link">🔗</a></h4>
+<p>模型既无循环也无卷积，要利用序列顺序就必须显式注入位置信息。做法是把位置编码<strong>加到</strong>（而非拼接到）encoder 与 decoder 栈底部的输入 embedding 上，因此位置编码与 embedding 同为 <span class="arithmatex">\(d_{\text{model}}\)</span> 维。</p>
+<p>本文使用不同频率的正弦与余弦函数：</p>
+<div class="arithmatex">\[PE_{(pos,\,2i)} = \sin\!\left(pos / 10000^{2i/d_{\text{model}}}\right)\]</div>
+<div class="arithmatex">\[PE_{(pos,\,2i+1)} = \cos\!\left(pos / 10000^{2i/d_{\text{model}}}\right)\]</div>
+<p>其中 <span class="arithmatex">\(pos\)</span> 是位置，<span class="arithmatex">\(i\)</span> 是维度索引，即位置编码的每一维对应一条正弦曲线。<strong>波长构成从 <span class="arithmatex">\(2\pi\)</span> 到 <span class="arithmatex">\(10000 \cdot 2\pi\)</span> 的几何级数。</strong></p>
+<p>选择这个函数的假设是：它能让模型容易学会按<strong>相对位置</strong>做注意——因为对任意固定偏移 <span class="arithmatex">\(k\)</span>，<span class="arithmatex">\(PE_{pos+k}\)</span> 都可以表示成 <span class="arithmatex">\(PE_{pos}\)</span> 的线性函数。</p>
+<p>论文也试过<strong>学习式</strong>位置嵌入，结果与正弦版<strong>几乎完全相同</strong>（Table 3 行 (E)）。作者选择正弦版的理由是：它<strong>可能</strong>允许模型外推到训练时未见过的更长序列。</p>
+<blockquote>
+<p><strong>批注</strong>：这里的「可能」值得标注——论文没有做任何外推实验。这个未经验证的论断在后续影响很大，RoPE、ALiBi 等相对位置方案正是沿「相对位置 + 长度外推」这条线继续推进的。</p>
+</blockquote>
+<h3 id="34-why-self-attention">3.4 Why Self-Attention<a class="headerlink" href="#34-why-self-attention" title="Permanent link">🔗</a></h3>
+<p>论文用三个诉求比较 self-attention、循环层、卷积层：<strong>每层总计算复杂度</strong>、<strong>可并行的计算量</strong>（以所需最小顺序操作数衡量）、<strong>长程依赖的路径长度</strong>。第三项的理由是：前向与反向信号需要穿越的路径越短，长程依赖越容易学。</p>
+<p><strong>Table 1</strong>（<span class="arithmatex">\(n\)</span> 序列长度，<span class="arithmatex">\(d\)</span> 表示维度，<span class="arithmatex">\(k\)</span> 卷积核宽度，<span class="arithmatex">\(r\)</span> 受限自注意力的邻域大小）：</p>
+<table>
+<thead>
+<tr>
+<th>Layer Type</th>
+<th>Complexity per Layer</th>
+<th>Sequential Operations</th>
+<th>Maximum Path Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Self-Attention</td>
+<td><span class="arithmatex">\(O(n^2 \cdot d)\)</span></td>
+<td><span class="arithmatex">\(O(1)\)</span></td>
+<td><span class="arithmatex">\(O(1)\)</span></td>
+</tr>
+<tr>
+<td>Recurrent</td>
+<td><span class="arithmatex">\(O(n \cdot d^2)\)</span></td>
+<td><span class="arithmatex">\(O(n)\)</span></td>
+<td><span class="arithmatex">\(O(n)\)</span></td>
+</tr>
+<tr>
+<td>Convolutional</td>
+<td><span class="arithmatex">\(O(k \cdot n \cdot d^2)\)</span></td>
+<td><span class="arithmatex">\(O(1)\)</span></td>
+<td><span class="arithmatex">\(O(\log_k n)\)</span></td>
+</tr>
+<tr>
+<td>Self-Attention (restricted)</td>
+<td><span class="arithmatex">\(O(r \cdot n \cdot d)\)</span></td>
+<td><span class="arithmatex">\(O(1)\)</span></td>
+<td><span class="arithmatex">\(O(n/r)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>论文对这张表的解读：</p>
+<ul>
+<li>self-attention 用<strong>常数次</strong>顺序操作连接所有位置，循环层需要 <span class="arithmatex">\(O(n)\)</span> 次。</li>
+<li>就每层复杂度而言，<strong>self-attention 比循环层更快的条件是 <span class="arithmatex">\(n &lt; d\)</span></strong>。论文指出这在机器翻译常用的 word-piece / byte-pair 句子表示下通常成立。</li>
+<li>对超长序列，可以把 self-attention 限制在以输出位置为中心、大小为 <span class="arithmatex">\(r\)</span> 的邻域内，最大路径长度随之升到 <span class="arithmatex">\(O(n/r)\)</span>。论文把这列为 future work。</li>
+<li>核宽 <span class="arithmatex">\(k &lt; n\)</span> 的单个卷积层无法连接所有输入输出位置对；要做到需要堆 <span class="arithmatex">\(O(n/k)\)</span> 层（连续核）或 <span class="arithmatex">\(O(\log_k n)\)</span> 层（膨胀卷积）。卷积层通常比循环层贵 <span class="arithmatex">\(k\)</span> 倍；可分离卷积能降到 <span class="arithmatex">\(O(k \cdot n \cdot d + n \cdot d^2)\)</span>，但即使取 <span class="arithmatex">\(k = n\)</span>，其复杂度也等于「self-attention 层 + point-wise 前馈层」的组合——正是本文采用的方案。</li>
+<li>附带收益：self-attention 可能带来更好的可解释性。附录展示的注意力分布显示，不同的头明显学会了不同的任务，许多头表现出与句法、语义结构相关的行为。</li>
+</ul>
+<blockquote>
+<p><strong>批注</strong>：这张表是全文最有工程价值的部分，也最容易被误用。<span class="arithmatex">\(n &lt; d\)</span> 这个前提论文写得很清楚，引用者常常省略它。<span class="arithmatex">\(d_{\text{model}} = 512\)</span>、句子几十个 token 时前提成立；今天 <span class="arithmatex">\(n\)</span> 到 4K–128K 而 <span class="arithmatex">\(d\)</span> 仍在 4K 量级，<span class="arithmatex">\(O(n^2 d)\)</span> 完全主导。另外表里<strong>没有显存这一列</strong>——注意力矩阵是 <span class="arithmatex">\(n \times n\)</span>，训练时要保留用于反向传播，这项开销在四个 <span class="arithmatex">\(O(\cdot)\)</span> 中全部不可见，而它正是 FlashAttention 要解决的问题。</p>
+</blockquote>
+<h3 id="35-training">3.5 Training<a class="headerlink" href="#35-training" title="Permanent link">🔗</a></h3>
+<h4 id="数据与-batching51">数据与 batching（§5.1）<a class="headerlink" href="#数据与-batching51" title="Permanent link">🔗</a></h4>
+<ul>
+<li><strong>EN-DE</strong>：WMT 2014，约 450 万句对，byte-pair encoding，源目标<strong>共享</strong>约 37000 token 的词表。</li>
+<li><strong>EN-FR</strong>：WMT 2014，3600 万句，32000 word-piece 词表。</li>
+<li>句对按<strong>近似序列长度</strong>分桶后组 batch，每个训练 batch 约含 25000 源 token 与 25000 目标 token。</li>
+</ul>
+<h4 id="硬件与调度52">硬件与调度（§5.2）<a class="headerlink" href="#硬件与调度52" title="Permanent link">🔗</a></h4>
+<p>单机 8× NVIDIA P100。base 每步约 0.4 秒，共 100,000 步 / 12 小时；big 每步 1.0 秒，共 300,000 步 / 3.5 天。</p>
+<h4 id="优化器53">优化器（§5.3）<a class="headerlink" href="#优化器53" title="Permanent link">🔗</a></h4>
+<p>Adam，<span class="arithmatex">\(\beta_1 = 0.9\)</span>，<span class="arithmatex">\(\beta_2 = 0.98\)</span>，<span class="arithmatex">\(\epsilon = 10^{-9}\)</span>。学习率按式 (3) 变化：</p>
+<div class="arithmatex">\[lrate = d_{\text{model}}^{-0.5} \cdot \min\!\left(step\_num^{-0.5},\; step\_num \cdot warmup\_steps^{-1.5}\right)\]</div>
+<p>即前 <span class="arithmatex">\(warmup\_steps\)</span> 步线性升温，之后按步数的负平方根衰减。本文取 <span class="arithmatex">\(warmup\_steps = 4000\)</span>。</p>
+<h4 id="正则化54">正则化（§5.4）<a class="headerlink" href="#正则化54" title="Permanent link">🔗</a></h4>
+<ul>
+<li><strong>Residual Dropout</strong>：对每个子层的输出、在与子层输入相加并归一化<strong>之前</strong>施加 dropout；此外对 encoder 与 decoder 栈中「embedding + 位置编码」之和也施加 dropout。base 模型 <span class="arithmatex">\(P_{drop} = 0.1\)</span>。</li>
+<li><strong>Label Smoothing</strong>：<span class="arithmatex">\(\epsilon_{ls} = 0.1\)</span>。论文直言这会<strong>损害 perplexity</strong>（模型被迫变得更不确定），但提升 accuracy 与 BLEU。</li>
+</ul>
+<blockquote>
+<p><strong>批注</strong>：label smoothing 这条是值得记住的取舍范式——训练目标的代理指标（perplexity）与真实评价指标（BLEU）可以反向变动。凡是用代理指标做早停或调参的场景都要小心这一点。</p>
+</blockquote>
+<h3 id="36-results">3.6 Results<a class="headerlink" href="#36-results" title="Permanent link">🔗</a></h3>
+<h4 id="61-机器翻译">6.1 机器翻译<a class="headerlink" href="#61-机器翻译" title="Permanent link">🔗</a></h4>
+<p><strong>Table 2</strong>（newstest2014）：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>EN-DE BLEU</th>
+<th>EN-FR BLEU</th>
+<th>训练成本 (FLOPs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transformer (base)</td>
+<td>27.3</td>
+<td>38.1</td>
+<td><span class="arithmatex">\(3.3 \times 10^{18}\)</span></td>
+</tr>
+<tr>
+<td>Transformer (big)</td>
+<td><strong>28.4</strong></td>
+<td><strong>41.8</strong></td>
+<td><span class="arithmatex">\(2.3 \times 10^{19}\)</span></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>EN-DE 上，big 模型超过此前最好结果（<strong>含 ensemble</strong>）2.0 BLEU 以上，训练耗时 3.5 天 / 8×P100。base 模型也超过了此前所有已发表的模型与 ensemble，成本只是竞品的一小部分。</li>
+<li>EN-FR 的 big 模型使用 <span class="arithmatex">\(P_{drop} = 0.1\)</span> 而非 0.3。</li>
+<li><strong>推理设置</strong>：base 取最后 5 个 checkpoint（每 10 分钟写一个）的平均，big 取最后 20 个的平均；beam size 4，length penalty <span class="arithmatex">\(\alpha = 0.6\)</span>；推理最大输出长度设为输入长度 + 50，可提前终止。</li>
+<li><strong>FLOPs 估算方式</strong>：训练时间 × GPU 数 × 单卡持续单精度算力估计。脚注给出各卡取值：K80 2.8、K40 3.7、M40 6.0、P100 9.5 TFLOPS。</li>
+</ul>
+<blockquote>
+<p><strong>批注（原文不一致）</strong>：§6.1 正文写 EN-FR big 模型达到 <strong>41.0</strong> BLEU，而摘要与 Table 2 都写 <strong>41.8</strong>。同一篇论文内部数字冲突，引用时必须注明取自何处。本笔记统一采用 Table 2 的 41.8 并标出该差异。</p>
+</blockquote>
+<h4 id="62-模型变体消融">6.2 模型变体（消融）<a class="headerlink" href="#62-模型变体消融" title="Permanent link">🔗</a></h4>
+<p>设置：在 EN-DE <strong>开发集</strong> newstest2013 上测量，使用 beam search，<strong>不做 checkpoint averaging</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>行</th>
+<th>变动</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(A)</td>
+<td>固定总计算量，改变头数 <span class="arithmatex">\(h\)</span> 与 <span class="arithmatex">\(d_k\)</span>/<span class="arithmatex">\(d_v\)</span></td>
+<td>单头比最佳设置差 <strong>0.9 BLEU</strong>；头数过多质量同样下降</td>
+</tr>
+<tr>
+<td>(B)</td>
+<td>减小 attention key 维度 <span class="arithmatex">\(d_k\)</span></td>
+<td>损害质量。论文推断：兼容性判定并不容易，比点积更复杂的兼容函数可能有益</td>
+</tr>
+<tr>
+<td>(C)(D)</td>
+<td>改变模型规模 / dropout</td>
+<td>更大的模型更好；dropout 对抑制过拟合非常有效</td>
+</tr>
+<tr>
+<td>(E)</td>
+<td>用学习式位置嵌入替换正弦编码</td>
+<td>与 base 模型结果<strong>几乎相同</strong></td>
+</tr>
+</tbody>
+</table>
+<p>big 模型配置（Table 3 末行）：<span class="arithmatex">\(N=6\)</span>，<span class="arithmatex">\(d_{\text{model}}=1024\)</span>，<span class="arithmatex">\(d_{ff}=4096\)</span>，<span class="arithmatex">\(h=16\)</span>，<span class="arithmatex">\(P_{drop}=0.3\)</span>，300K 步 → dev PPL <strong>4.33</strong>、dev BLEU <strong>26.4</strong>、参数量 <strong>213M</strong>。</p>
+<h4 id="63-英文句法成分分析">6.3 英文句法成分分析<a class="headerlink" href="#63-英文句法成分分析" title="Permanent link">🔗</a></h4>
+<p>用来检验泛化性。这个任务的特点：输出受<strong>强结构约束</strong>，且显著长于输入；同时 RNN seq2seq 在小数据下达不到 SOTA。</p>
+<ul>
+<li>模型：4 层，<span class="arithmatex">\(d_{\text{model}} = 1024\)</span>。</li>
+<li>数据：Penn Treebank 的 WSJ 部分，约 4 万训练句（词表 16K）；半监督设置额外使用高置信度语料与 BerkeleyParser 语料，约 1700 万句（词表 32K）。</li>
+<li>调参：只在 Section 22 开发集上小范围调了 dropout、学习率与 beam size，其余超参沿用 EN-DE base 模型。推理时最大输出长度设为输入长度 + <strong>300</strong>，beam size <strong>21</strong>，<span class="arithmatex">\(\alpha = 0.3\)</span>。</li>
+</ul>
+<p><strong>Table 4</strong>（WSJ Section 23 F1）：</p>
+<table>
+<thead>
+<tr>
+<th>Parser</th>
+<th>训练设置</th>
+<th>F1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Petrov et al. (2006)，BerkeleyParser</td>
+<td>WSJ only, discriminative</td>
+<td>90.4</td>
+</tr>
+<tr>
+<td>Dyer et al. (2016)</td>
+<td>WSJ only, discriminative</td>
+<td>91.7</td>
+</tr>
+<tr>
+<td><strong>Transformer (4 layers)</strong></td>
+<td><strong>WSJ only, discriminative</strong></td>
+<td><strong>91.3</strong></td>
+</tr>
+<tr>
+<td>McClosky et al. (2006)</td>
+<td>semi-supervised</td>
+<td>92.1</td>
+</tr>
+<tr>
+<td><strong>Transformer (4 layers)</strong></td>
+<td><strong>semi-supervised</strong></td>
+<td><strong>92.7</strong></td>
+</tr>
+<tr>
+<td>Dyer et al. (2016), RNNG</td>
+<td>generative</td>
+<td><strong>93.3</strong></td>
+</tr>
+</tbody>
+</table>
+<p>结论：在缺少任务特定调优的情况下，除生成式 RNNG 外优于此前所有报告结果；且<strong>仅用 4 万句 WSJ 训练就超过了 BerkeleyParser</strong>，而 RNN seq2seq 在同样的小数据设置下做不到。</p>
+<h3 id="37-conclusion">3.7 Conclusion<a class="headerlink" href="#37-conclusion" title="Permanent link">🔗</a></h3>
+<ul>
+<li>Transformer 是第一个完全基于 attention 的序列转导模型，用 multi-head self-attention 替换了 encoder-decoder 架构中最常用的循环层。</li>
+<li>翻译任务上训练显著快于基于循环或卷积的架构，在 WMT 2014 EN-DE 与 EN-FR 上同时达到新 SOTA，EN-DE 上超过此前所有 ensemble。</li>
+<li>展望三条：扩展到文本以外的模态；研究<strong>局部受限的注意力机制</strong>以高效处理图像、音频、视频这类大输入输出；<strong>让生成过程更少地依赖顺序</strong>（making generation less sequential）。</li>
+</ul>
+<blockquote>
+<p><strong>批注</strong>：第三条展望至今仍是开放问题。自回归解码的顺序性正是今天 LLM 推理延迟的根源，speculative decoding、Medusa、diffusion LM 都在攻这个点，还没有通用解。</p>
+</blockquote>
+<hr />
+<h2 id="4-关键问题解析">4. 关键问题解析<a class="headerlink" href="#4-关键问题解析" title="Permanent link">🔗</a></h2>
+<h3 id="q1-为什么-scaled-dot-product-attention-要除以-sqrtd_k">Q1: 为什么 scaled dot-product attention 要除以 <span class="arithmatex">\(\sqrt{d_k}\)</span>？<a class="headerlink" href="#q1-为什么-scaled-dot-product-attention-要除以-sqrtd_k" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 分三层。</p>
+<p><strong>现象层</strong>。论文观察到 <span class="arithmatex">\(d_k\)</span> 较小时点积注意力与加性注意力表现相近，<span class="arithmatex">\(d_k\)</span> 较大时<strong>不加缩放的点积注意力反而更差</strong>。缩放是为了修复这个退化。</p>
+<p><strong>量级层</strong>（脚注 1 的论证）。假设 <span class="arithmatex">\(q\)</span>、<span class="arithmatex">\(k\)</span> 的各分量是均值 0、方差 1 的独立随机变量，则</p>
+<div class="arithmatex">\[q \cdot k = \sum_{i=1}^{d_k} q_i k_i, \qquad \mathbb{E}[q \cdot k] = 0, \qquad \mathrm{Var}[q \cdot k] = d_k\]</div>
+<p>标准差为 <span class="arithmatex">\(\sqrt{d_k}\)</span>。本文 <span class="arithmatex">\(d_k = 64\)</span>，点积的典型量级就在 <span class="arithmatex">\(\pm 8\)</span>。softmax 输入之间相差 8 量级时输出接近 one-hot，落在梯度极小的饱和区。除以 <span class="arithmatex">\(\sqrt{d_k}\)</span> 把方差归一化回 1，使 softmax 输入的分布<strong>与 <span class="arithmatex">\(d_k\)</span> 无关</strong>。</p>
+<p><strong>证据边界</strong>。论文原文用的是 "We suspect"，给出的是量级论证而非梯度界的严格证明；论文也没有做「去掉缩放」的消融。当前证据覆盖「<span class="arithmatex">\(d_k\)</span> 大时未缩放版本更差」这一实验事实与方差量级推导；「饱和区梯度消失是唯一原因」需要单独验证。</p>
+<p><strong>工程含义</strong>。缩放因子只依赖 <span class="arithmatex">\(d_k\)</span>，不依赖 <span class="arithmatex">\(h\)</span>。在 <span class="arithmatex">\(d_k = d_{\text{model}}/h\)</span> 的约定下，改变头数会自动改变缩放——自己实现 multi-head 时这里容易写错。</p>
+<h3 id="q2-multi-head-相比单个大-head-到底多了什么表达能力">Q2: Multi-head 相比单个大 head 到底多了什么表达能力？<a class="headerlink" href="#q2-multi-head-相比单个大-head-到底多了什么表达能力" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 先明确<strong>它不多花算力</strong>：<span class="arithmatex">\(d_k = d_v = d_{\text{model}}/h\)</span>，<span class="arithmatex">\(h\)</span> 个头的总计算成本与一个全维单头相当。所以 multi-head 是在同等预算下<strong>重新划分表示空间</strong>。</p>
+<p>论文在两处给出动机，指向同一件事：</p>
+<ul>
+<li>§2 Background：注意力对加权位置做平均会降低<strong>有效分辨率</strong>，multi-head 用来抵消。</li>
+<li>§3.2.2：multi-head 让模型能在不同位置上联合关注来自<strong>不同表示子空间</strong>的信息；单头时平均会抑制这一点。</li>
+</ul>
+<p><strong>机制上的解释</strong>：单头只产生一个 softmax 概率分布，一个 query 位置最终只能拿到 values 的<strong>一个</strong>凸组合。如果某个词同时需要「指向它的句法主语」和「指向它的语义论元」，单个分布必须在两者之间折中，折中的结果是两个信号都被削弱。<span class="arithmatex">\(h\)</span> 个头产生 <span class="arithmatex">\(h\)</span> 个独立分布，各自输出拼接后再经 <span class="arithmatex">\(W^O\)</span> 混合，多组指向可以同时保留。</p>
+<p><strong>实证边界</strong>（Table 3 行 (A)，固定总计算量）：单头比最佳设置差 <strong>0.9 BLEU</strong>；但<strong>头数过多质量也会下降</strong>。原因可与行 (B) 对照理解——头数增加使每头的 <span class="arithmatex">\(d_k\)</span> 变小，而减小 <span class="arithmatex">\(d_k\)</span> 本身就伤质量。因此存在一个最优 <span class="arithmatex">\(h\)</span>，本文取 8（base）与 16（big）。</p>
+<p>「不同头覆盖不同子空间」在论文里只有端到端 BLEU 的间接证据与附录的定性可视化，没有直接的定量验证。</p>
+<h3 id="q3-正弦式-positional-encoding-的设计动机是什么和学习式相比取舍在哪">Q3: 正弦式 positional encoding 的设计动机是什么？和学习式相比取舍在哪？<a class="headerlink" href="#q3-正弦式-positional-encoding-的设计动机是什么和学习式相比取舍在哪" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>:</p>
+<p><strong>为什么必须有位置编码</strong>。self-attention 对输入位置是置换等变的：打乱输入顺序，输出只是同样被打乱，模型无法区分词序。去掉循环与卷积后，位置信息没有任何其他来源。</p>
+<p><strong>为什么是相加而非拼接</strong>。位置编码与 embedding 同为 <span class="arithmatex">\(d_{\text{model}}\)</span> 维，直接相加不增加维度，因而不改变后续所有子层的形状与计算量。</p>
+<p><strong>为什么是这组正余弦</strong>。频率沿维度构成几何级数，波长从 <span class="arithmatex">\(2\pi\)</span> 到 <span class="arithmatex">\(10000 \cdot 2\pi\)</span>。论文给出的假设是：对任意固定偏移 <span class="arithmatex">\(k\)</span>，<span class="arithmatex">\(PE_{pos+k}\)</span> 可以写成 <span class="arithmatex">\(PE_{pos}\)</span> 的<strong>线性函数</strong>（正余弦的和角公式直接给出这一点），因此模型容易学会「按相对位置注意」。</p>
+<p><strong>与学习式的取舍</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>正弦式</th>
+<th>学习式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>翻译质量</td>
+<td>Table 3 行 (E)：两者<strong>几乎相同</strong></td>
+<td>同左</td>
+</tr>
+<tr>
+<td>参数量</td>
+<td>0</td>
+<td><span class="arithmatex">\(L_{\max} \times d_{\text{model}}\)</span></td>
+</tr>
+<tr>
+<td>超出训练长度</td>
+<td>有定义（函数在任意 <span class="arithmatex">\(pos\)</span> 都可算）</td>
+<td>无定义（表外没有条目）</td>
+</tr>
+</tbody>
+</table>
+<p>论文选择正弦版的<strong>唯一理由</strong>是「可能允许外推到训练时未见的更长序列」。这是全文影响最深远但<strong>完全没有实验支撑</strong>的论断——论文没有做任何长度外推实验。后来的实践表明正弦编码的外推能力也很有限，这正是 RoPE、ALiBi 等方案出现的动因。</p>
+<h3 id="q4-decoder-的-masked-self-attention-如何保证自回归性质">Q4: Decoder 的 masked self-attention 如何保证自回归性质？<a class="headerlink" href="#q4-decoder-的-masked-self-attention-如何保证自回归性质" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 两个机制叠加，缺一不可。</p>
+<ol>
+<li><strong>输出 embedding 右移一位</strong>（offset by one position）：预测位置 <span class="arithmatex">\(i\)</span> 时，输入端喂进去的是位置 <span class="arithmatex">\(i-1\)</span> 及之前的真实 token。</li>
+<li><strong>在 scaled dot-product attention 内部做 mask</strong>：把 softmax <strong>输入</strong>中所有对应非法连接的值置为 <span class="arithmatex">\(-\infty\)</span>。</li>
+</ol>
+<p><strong>为什么是 <span class="arithmatex">\(-\infty\)</span> 而不是在 softmax 之后置 0</strong>。mask 必须作用在 softmax 之前。<span class="arithmatex">\(e^{-\infty} = 0\)</span> 使这些位置的权重严格为 0，<strong>且不进入归一化的分母</strong>，剩余合法位置的权重之和仍为 1。若在 softmax 之后把非法位置置 0，剩余权重的和会小于 1，等于给不同位置施加了不同的缩放。</p>
+<p><strong>最重要的后果</strong>：训练时可以一次性并行计算所有位置的损失（teacher forcing），推理必须逐 token 展开。<strong>训练可并行、推理仍顺序</strong>——这个不对称是今天 prefill / decode 两阶段划分的直接来源，也是 §7 里「making generation less sequential」这条展望的对象。</p>
+<p>它同时给出了 KV Cache 的依据：位置 <span class="arithmatex">\(j\)</span> 的 <span class="arithmatex">\(K_j\)</span>、<span class="arithmatex">\(V_j\)</span> 只依赖位置 <span class="arithmatex">\(\le j\)</span> 的输入，新生成的 token 不会改变它们，因此可以缓存。</p>
+<h3 id="q5-4-用三项指标论证-self-attention-优于-rnncnn这个论证在什么条件下会失效">Q5: §4 用三项指标论证 self-attention 优于 RNN/CNN，这个论证在什么条件下会失效？<a class="headerlink" href="#q5-4-用三项指标论证-self-attention-优于-rnncnn这个论证在什么条件下会失效" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 论文自己给出了<strong>一个</strong>失效条件，还有若干它没有讨论的。</p>
+<p><strong>论文明说的条件</strong>：self-attention 每层比循环层更快，前提是 <strong><span class="arithmatex">\(n &lt; d\)</span></strong>。<span class="arithmatex">\(O(n^2 d)\)</span> 与 <span class="arithmatex">\(O(n d^2)\)</span> 的交叉点正在 <span class="arithmatex">\(n = d\)</span>。论文场景下 <span class="arithmatex">\(d_{\text{model}} = 512\)</span>、BPE 后句子长度几十，前提成立。</p>
+<p><strong>今天为什么失效</strong>：<span class="arithmatex">\(n\)</span> 已到 4K–128K，<span class="arithmatex">\(d\)</span> 仍在 4K 量级，<span class="arithmatex">\(n \gg d\)</span>，<span class="arithmatex">\(O(n^2 d)\)</span> 完全主导。论文其实预见到了方向——它提出 restricted self-attention 把复杂度降到 <span class="arithmatex">\(O(r \cdot n \cdot d)\)</span>，代价是最大路径长度升到 <span class="arithmatex">\(O(n/r)\)</span>——但列为 future work，没有实验。此后所有稀疏 / 滑窗 / 线性注意力都在这条线上。</p>
+<p><strong>Table 1 没有覆盖的三件事</strong>：</p>
+<ul>
+<li><strong>显存</strong>。注意力矩阵是 <span class="arithmatex">\(n \times n\)</span>，训练时需要保留用于反向传播。这项开销在四个 <span class="arithmatex">\(O(\cdot)\)</span> 中完全不可见，却是长序列训练的第一约束。FlashAttention 通过分块与重计算把它降到线性，而<strong>不改变 Table 1 中的任何一个复杂度</strong>——这说明这张表衡量的维度是不完整的。</li>
+<li><strong>常数因子与硬件适配</strong>。<span class="arithmatex">\(O(n d^2)\)</span> 的循环层是一串小矩阵乘，<span class="arithmatex">\(O(n^2 d)\)</span> 的注意力是大矩阵乘。GPU 上后者的实际吞吐远高于渐进复杂度所暗示的，这也是论文选点积而非加性注意力的理由（可复用高度优化的 matmul），但它没有把这个因素写进表里。</li>
+<li><strong>推理侧的成本结构</strong>。Table 1 衡量的是训练时一层的前向。自回归解码时每步只处理一个新 token，瓶颈从算力转向访存（读取 KV Cache 与权重），三列都无法描述这个阶段。</li>
+</ul>
+<p><strong>「最长路径 <span class="arithmatex">\(O(1)\)</span>」的另一重局限</strong>：它只衡量信息的<strong>可达性</strong>，不衡量优化的<strong>难度</strong>。路径短不等于梯度好走，深层堆叠仍然依赖残差连接与 LayerNorm 才能训得动。</p>
+<h3 id="q6-既然-attention-已经能混合全局信息为什么每层还需要-ffn">Q6: 既然 attention 已经能混合全局信息，为什么每层还需要 FFN？<a class="headerlink" href="#q6-既然-attention-已经能混合全局信息为什么每层还需要-ffn" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 因为 <strong>attention 子层对 <span class="arithmatex">\(V\)</span> 是线性的</strong>。给定注意力权重，输出是 values 的凸组合；多层线性混合叠起来仍然是线性混合，无法表达逐位置的非线性变换。</p>
+<p>FFN 提供两件事：</p>
+<ul>
+<li><strong>非线性</strong>：<span class="arithmatex">\(\max(0, \cdot)\)</span> 是模型中主要的非线性来源。</li>
+<li><strong>容量</strong>：<span class="arithmatex">\(512 \to 2048 \to 512\)</span>，中间层放大 4 倍。按参数量算，每层 FFN 约 <span class="arithmatex">\(2 \times 512 \times 2048 \approx 2.1\text{M}\)</span>，而 multi-head attention 的四个投影矩阵合计约 <span class="arithmatex">\(4 \times 512 \times 512 \approx 1.05\text{M}\)</span>。<strong>FFN 占单层参数约三分之二。</strong></li>
+</ul>
+<p>由此得到 Transformer 的职责分离：<strong>跨位置的信息交换只在 attention 子层发生，逐位置的特征变换只在 FFN 子层发生</strong>。这个分离的工程价值是参数量大头与 <span class="arithmatex">\(n\)</span> 无关，也是后来 MoE 只替换 FFN 而不动 attention 的原因。</p>
+<p>顺带说明：论文标题 "Attention Is All You Need" 与模型实际构成并不吻合——去掉 FFN 模型不可用。更准确的表述是「attention 替代了 recurrence」。</p>
+<h3 id="q7-embedding-权重为什么要乘-sqrtd_textmodel">Q7: Embedding 权重为什么要乘 <span class="arithmatex">\(\sqrt{d_{\text{model}}}\)</span>？<a class="headerlink" href="#q7-embedding-权重为什么要乘-sqrtd_textmodel" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: <strong>论文只陈述了做法，没有给出理由。</strong> 以下是推断。</p>
+<p>线索是同一句话的前半段：两个 embedding 层与 pre-softmax 线性变换<strong>共享同一权重矩阵</strong>。这个矩阵要同时满足两个角色的需求——作为输出层它希望按 <span class="arithmatex">\(\sim \mathcal{N}(0,\, 1/d_{\text{model}})\)</span> 这类量级初始化以稳定 logits，而这会让 embedding 查表得到的向量各分量量级在 <span class="arithmatex">\(1/\sqrt{d_{\text{model}}}\)</span> 附近。</p>
+<p>位置编码是正余弦，各分量量级为 <span class="arithmatex">\(O(1)\)</span>。若不作调整，二者相加时<strong>位置信号会压过词义信号</strong>。乘以 <span class="arithmatex">\(\sqrt{d_{\text{model}}}\)</span>（本文即 <span class="arithmatex">\(\sqrt{512} \approx 22.6\)</span>）把 embedding 拉回 <span class="arithmatex">\(O(1)\)</span>，使两个加数量级可比。</p>
+<p>证据边界：这个解释与论文的实现细节一致，但论文既没有说明，也没有做消融。归类为<strong>推断</strong>。</p>
+<h3 id="q8-学习率-warmup-是必需的吗">Q8: 学习率 warmup 是必需的吗？<a class="headerlink" href="#q8-学习率-warmup-是必需的吗" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 式 (3) 的调度：</p>
+<div class="arithmatex">\[lrate = d_{\text{model}}^{-0.5} \cdot \min\!\left(step^{-0.5},\; step \cdot warmup^{-1.5}\right)\]</div>
+<p>前 <span class="arithmatex">\(warmup = 4000\)</span> 步线性上升，之后按 <span class="arithmatex">\(step^{-0.5}\)</span> 衰减，两段在 <span class="arithmatex">\(step = warmup\)</span> 处取值相等因而连续。<span class="arithmatex">\(d_{\text{model}}^{-0.5}\)</span> 这个因子使调度对模型宽度自适应——模型越宽学习率越小。</p>
+<p><strong>论文没有解释为什么需要 warmup。</strong> 可以指出的是本文的结构前提：§3.1 明确写的是 <span class="arithmatex">\(\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))\)</span>，即 <strong>Post-LN</strong>——归一化在残差相加之后。这个位置使得初始化时深层的梯度量级偏大，训练初期直接使用目标学习率容易发散。</p>
+<p>后续工作（Pre-LN，把 LayerNorm 移到子层输入侧）表明在该结构下 warmup 可以省略。这条线索说明 <strong>warmup 不是 Transformer 的固有需求，而是对 Post-LN 的补偿</strong>。</p>
+<p>证据边界：Post-LN / Pre-LN 的对比分析出自本文之后的论文；本文提供的只有「用了这个调度并且训得动」这一事实。</p>
+<hr />
+<h2 id="5-可迁移的知识点">5. 可迁移的知识点<a class="headerlink" href="#5-可迁移的知识点" title="Permanent link">🔗</a></h2>
+<ul>
+<li><a href="../../../concepts/self-attention/">Self-Attention</a> —— 本文把它从 RNN 的附属组件提升为唯一的序列建模原语，并给出 scaled dot-product 这一具体形式与 <span class="arithmatex">\(1/\sqrt{d_k}\)</span> 缩放。</li>
+<li><a href="../../../concepts/multi-head-attention/">Multi-Head Attention</a> —— 本文在恒定计算预算下把表示空间切成 <span class="arithmatex">\(h\)</span> 份，用来抵消单个注意力分布的平均效应。</li>
+<li><a href="../../../concepts/positional-encoding/">Positional Encoding</a> —— 本文提出正余弦绝对位置编码，并提出（未验证）它可外推到更长序列。</li>
+<li><a href="../../../concepts/residual-and-layer-norm/">残差连接与 Layer Normalization</a> —— 本文采用 Post-LN 形式 <span class="arithmatex">\(\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))\)</span>，这是它需要 warmup 的结构原因。</li>
+<li><a href="../../../concepts/lr-warmup/">学习率 Warmup</a> —— 本文的 Noam 调度是这类策略最常被引用的出处。</li>
+<li><a href="../../../concepts/kv-cache/">KV Cache</a> —— 本文未讨论推理优化，但 §3.1 decoder 的因果 mask 与自回归性质给出了 KV 可缓存的全部依据。</li>
+</ul>
+<hr />
+<h2 id="6-批判与开放问题">6. 批判与开放问题<a class="headerlink" href="#6-批判与开放问题" title="Permanent link">🔗</a></h2>
+<h3 id="61-局限性">6.1 局限性<a class="headerlink" href="#61-局限性" title="Permanent link">🔗</a></h3>
+<p><strong>作者自己承认的</strong>：</p>
+<ul>
+<li>注意力对加权位置做平均会降低有效分辨率，需要用 multi-head 抵消（§2）。</li>
+<li>处理很长序列需要把注意力限制在邻域内，这只是分析，未实现（§4，列为 future work）。</li>
+<li>生成过程仍然是顺序的，「让生成更少顺序化」被列为研究目标（§7）。</li>
+</ul>
+<p><strong>论文没提但存在的</strong>：</p>
+<ul>
+<li><strong>Table 1 的维度不完整</strong>。它只给渐进复杂度，不含显存、不含常数因子、不含推理阶段的访存瓶颈。<span class="arithmatex">\(n \times n\)</span> 注意力矩阵的显存开销在表中完全不可见，而它是长序列训练的第一约束。</li>
+<li><strong>实验域窄于结论域</strong>。全部结果来自 WMT 两个翻译任务与 WSJ 句法分析，都是句子级、长度几十到几百的任务。论文对「长序列」只有分析没有实验，但结论的表述方式覆盖面远大于此。</li>
+<li><strong>消融缺少不确定度</strong>。Table 3 在 dev set 上单次运行、无 checkpoint averaging，也没有多 seed 的方差。行 (A) 那个 0.9 BLEU 的差值没有置信区间，无法判断它相对于随机种子噪声有多显著。</li>
+<li><strong>正弦编码的外推能力从未被验证</strong>。这是全文唯一「没有实验支撑却直接决定了设计选择」的论断，且被后续工作大量继承。</li>
+</ul>
+<h3 id="62-我的质疑">6.2 我的质疑<a class="headerlink" href="#62-我的质疑" title="Permanent link">🔗</a></h3>
+<ul>
+<li><strong>原文数字自相矛盾</strong>。§6.1 正文写 EN-FR big 模型 41.0 BLEU，摘要与 Table 2 写 41.8。这不是舍入差异。引用这个数字时必须注明来源位置。</li>
+<li><strong>标题与模型不符</strong>。按参数量，position-wise FFN 占每层约三分之二，去掉它模型不可用。"Attention Is All You Need" 准确的读法是「attention 足以替代 recurrence」。</li>
+<li><strong>multi-head 的动机缺少直接证据</strong>。「不同头覆盖不同表示子空间」在正文中是陈述，Table 3 行 (A) 提供的是端到端 BLEU 差异，附录的注意力可视化是定性挑选的样例。论文没有给出「头之间确实学到互补信息」的定量度量。后续研究（如注意力头剪枝实验）发现大量头可以被裁掉而质量几乎不降，这与论文暗示的图景存在张力。</li>
+<li><strong>跨架构的 FLOPs 比较只能算量级参考</strong>。论文用「训练时间 × GPU 数 × 标称 TFLOPS」估算成本，脚注列了 K80/K40/M40/P100 四种卡的取值。这个方法把各基线的实际 GPU 利用率差异全部抹平——而不同架构的利用率差异恰恰可能很大（循环层的小矩阵乘利用率通常显著低于大矩阵乘）。这会系统性地<strong>高估基线的有效算力</strong>，从而低估 Transformer 的相对优势；方向对结论有利，但精度不足以支撑「<span class="arithmatex">\(\times N\)</span> 倍成本优势」这类精确表述。</li>
+</ul>
+<h3 id="63-后续可读">6.3 后续可读<a class="headerlink" href="#63-后续可读" title="Permanent link">🔗</a></h3>
+<ul>
+<li><strong>FlashAttention</strong> —— 直接针对 Table 1 未覆盖的显存维度，IO-aware 的精确注意力。</li>
+<li><strong>BERT / GPT 系列</strong> —— 本文的 encoder 与 decoder 各自独立发展出的两条分支。</li>
+<li><strong>RoPE / ALiBi</strong> —— 沿 §3.5「相对位置 + 长度外推」这条未验证的线索继续推进。</li>
+<li><strong>Pre-LN 相关工作</strong> —— 解释并消除本文 §5.3 warmup 的必要性。</li>
+<li><strong>vLLM / PagedAttention</strong> —— 把 Q4 中指出的「<span class="arithmatex">\(K\)</span>、<span class="arithmatex">\(V\)</span> 对已生成前缀不变」这一性质工程化为 KV Cache 的分页管理。</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      笔记内容为个人学习记录；论文原文版权归原作者所有
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.tooltips"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../javascripts/katex.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/contrib/auto-render.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3272 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="计算机与软件系统工程方向的论文精读笔记与知识点沉淀">
+      
+      
+        <meta name="author" content="Lemon">
+      
+      
+        <link rel="canonical" href="https://nightlemon.github.io/paper-reading/topics/llm-serving/2026-cacheroute/">
+      
+      
+        <link rel="prev" href="../2023-vllm-pagedattention/">
+      
+      
+        <link rel="next" href="../../llm-training/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>CacheRoute: Planned Prefix-Affinity Routing for Large-Scale LLM Serving - Paper Reading</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans+SC:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Noto Sans SC";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://unpkg.com/katex@0/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cacheroute-planned-prefix-affinity-routing-for-large-scale-llm-serving" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../.." title="Paper Reading" class="md-header__button md-logo" aria-label="Paper Reading" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Paper Reading
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CacheRoute: Planned Prefix-Affinity Routing for Large-Scale LLM Serving
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/NightLemon/paper-reading" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NightLemon/paper-reading
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Paper Reading" class="md-nav__button md-logo" aria-label="Paper Reading" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Paper Reading
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/NightLemon/paper-reading" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    NightLemon/paper-reading
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reading-list/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    待读队列
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    论文笔记
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    论文笔记
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../foundations/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Foundations 奠基论文
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Foundations 奠基论文
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../foundations/2017-attention-is-all-you-need/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attention Is All You Need
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../foundations/2022-flashattention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlashAttention
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Serving 推理服务
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM Serving 推理服务
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2022-orca/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orca
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2023-vllm-pagedattention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vLLM / PagedAttention
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CacheRoute
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CacheRoute
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--done"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-元信息" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 元信息
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-摘要速览5-分钟版" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 摘要速览（5 分钟版）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 摘要速览（5 分钟版）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-要解决的问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 要解决的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-核心方法" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 核心方法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-主要结果" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 主要结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-我的评价" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 我的评价
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-细读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 细读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 细读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Introduction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-workload-and-failure-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Workload and Failure Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-cacheroute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 CacheRoute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-experimental-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Experimental Method
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-discussion-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Discussion and Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-related-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Related Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.8 Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-关键问题解析" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 关键问题解析
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 关键问题解析">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q1-计划式路由相比反应式cache-aware-路由本质优势是什么代价是什么" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q1: 「计划式」路由相比「反应式」cache-aware 路由，本质优势是什么？代价是什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q2-warm-set-的准入判据是什么key-的速率如何估计" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q2: warm set 的准入判据是什么？key 的速率如何估计？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q3-放置阶段解决的是什么优化问题开销多大" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q3: 放置阶段解决的是什么优化问题？开销多大？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q4-允许热-key-映射到多个-destination-时如何避免-kv-复制带来的显存放大" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q4: 允许热 key 映射到多个 destination 时，如何避免 KV 复制带来的显存放大？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q5-控制周期怎么定突发流量时的降级路径是什么" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q5: 控制周期怎么定？突发流量时的降级路径是什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q6-半合成负载对结论的外部效度有多大影响" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q6: 半合成负载对结论的外部效度有多大影响？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q7-为什么更高的-kv-命中率反而可能带来更低的容量" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q7: 为什么更高的 KV 命中率反而可能带来更低的容量？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q8-解析式缓存驻留模型为什么失败这对我意味着什么" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q8: 解析式缓存驻留模型为什么失败？这对我意味着什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-可迁移的知识点" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 可迁移的知识点
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-批判与开放问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 批判与开放问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 批判与开放问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-局限性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 局限性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-我的质疑" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 我的质疑
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-后续可读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 后续可读
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../llm-training/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Training 训练系统
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM Training 训练系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm-training/2019-megatron-lm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Megatron-LM
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../distributed-systems/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Systems 分布式系统
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Distributed Systems 分布式系统
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../distributed-systems/2014-raft/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raft
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--to-read"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../networking/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Networking 网络与 RDMA
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Networking 网络与 RDMA
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../llm-applications/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Applications 应用架构
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM Applications 应用架构
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../concepts/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    知识点
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    知识点
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/self-attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/multi-head-attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Head Attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/positional-encoding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Positional Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/residual-and-layer-norm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    残差连接与 Layer Normalization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/lr-warmup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    学习率 Warmup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/kv-cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KV Cache
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/paged-kv-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分页式 KV 管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/continuous-batching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Batching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/prefix-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prefix Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/cache-affinity-vs-load-balance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    缓存亲和性与负载均衡的取舍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/slo-capacity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SLO 容量与 p99 尾延迟
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/io-aware-kernel-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IO-aware 算法设计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/tensor-parallelism/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    张量并行
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../concepts/consensus-and-replication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    共识与复制状态机
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-元信息" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 元信息
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-摘要速览5-分钟版" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 摘要速览（5 分钟版）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 摘要速览（5 分钟版）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-要解决的问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 要解决的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-核心方法" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 核心方法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-主要结果" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 主要结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-我的评价" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 我的评价
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-细读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 细读
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 细读">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Introduction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-workload-and-failure-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Workload and Failure Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-cacheroute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 CacheRoute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-experimental-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Experimental Method
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-discussion-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Discussion and Limitations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-related-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Related Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.8 Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-关键问题解析" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 关键问题解析
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 关键问题解析">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q1-计划式路由相比反应式cache-aware-路由本质优势是什么代价是什么" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q1: 「计划式」路由相比「反应式」cache-aware 路由，本质优势是什么？代价是什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q2-warm-set-的准入判据是什么key-的速率如何估计" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q2: warm set 的准入判据是什么？key 的速率如何估计？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q3-放置阶段解决的是什么优化问题开销多大" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q3: 放置阶段解决的是什么优化问题？开销多大？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q4-允许热-key-映射到多个-destination-时如何避免-kv-复制带来的显存放大" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q4: 允许热 key 映射到多个 destination 时，如何避免 KV 复制带来的显存放大？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q5-控制周期怎么定突发流量时的降级路径是什么" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q5: 控制周期怎么定？突发流量时的降级路径是什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q6-半合成负载对结论的外部效度有多大影响" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q6: 半合成负载对结论的外部效度有多大影响？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q7-为什么更高的-kv-命中率反而可能带来更低的容量" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q7: 为什么更高的 KV 命中率反而可能带来更低的容量？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q8-解析式缓存驻留模型为什么失败这对我意味着什么" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q8: 解析式缓存驻留模型为什么失败？这对我意味着什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-可迁移的知识点" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 可迁移的知识点
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-批判与开放问题" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 批判与开放问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 批判与开放问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-局限性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 局限性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-我的质疑" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 我的质疑
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-后续可读" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 后续可读
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cacheroute-planned-prefix-affinity-routing-for-large-scale-llm-serving">CacheRoute: Planned Prefix-Affinity Routing for Large-Scale LLM Serving<a class="headerlink" href="#cacheroute-planned-prefix-affinity-routing-for-large-scale-llm-serving" title="Permanent link">🔗</a></h1>
+<blockquote>
+<p><strong>一句话结论</strong>：把「prefix 该落在哪台机器」从逐请求的反应式决策改成<strong>每个控制周期算一次的全局路由表</strong>——按 key 速率做准入、按预期负载做放置——在 60 张 H100 上把 3.5 秒 p99 SLO 下的容量提到最强基线的 2.3 倍；论文同时给出了这个方法<strong>会输</strong>的工作负载，并把「上线前必须 shadow replay」写成硬性流程。</p>
+</blockquote>
+<hr />
+<h2 id="1-元信息">1. 元信息<a class="headerlink" href="#1-元信息" title="Permanent link">🔗</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作者 / 机构</td>
+<td>Huang Cheng · Meta, Menlo Park</td>
+</tr>
+<tr>
+<td>发表</td>
+<td>arXiv:2608.19677v1 [cs.DC]，2026-08-20（单作者预印本，未见会议信息）</td>
+</tr>
+<tr>
+<td>原文</td>
+<td><a href="paper.pdf">PDF</a> · <a href="paper.html">HTML</a> · <a href="https://arxiv.org/abs/2608.19677">arXiv</a></td>
+</tr>
+<tr>
+<td>代码</td>
+<td>论文与附录均未给出公开链接</td>
+</tr>
+<tr>
+<td>关键词</td>
+<td>LLM serving · prefix caching · request routing · request scheduling</td>
+</tr>
+<tr>
+<td>前置知识</td>
+<td>KV Cache 与 prefix caching、TTFT / p99 尾延迟、一致性哈希与 power-of-two-choices、LPT 列表调度</td>
+</tr>
+<tr>
+<td>主实验条件</td>
+<td>Llama-3.3-70B fp8，30 个 TP2 destination（60× H100），半合成聚合负载，5 组配对种子</td>
+</tr>
+</tbody>
+</table>
+<p><strong>记号约定</strong>（沿用论文）：<span class="arithmatex">\(b\)</span> 业务 key，<span class="arithmatex">\(\lambda_b\)</span> 该 key 的估计到达率，<span class="arithmatex">\(R\)</span> destination 数量，<span class="arithmatex">\(q_{\mathrm{cap}}\)</span> 单 destination 的负载上限，<span class="arithmatex">\(k_b\)</span> 分配给该 key 的 destination 数，<span class="arithmatex">\(T(b)\)</span> 路由表中该 key 的 destination 集合，<span class="arithmatex">\(C = RW\)</span> 全局 warm prefix 槽位数，<span class="arithmatex">\(W\)</span> 单 destination 槽位数。</p>
+<p><strong>一个术语澄清</strong>：论文中 destination 指<strong>一个可独立路由的 model-server 组</strong>。在 70B 部署里，一个 destination 是一对张量并行度为 2 的 GPU（TP2），所以 30 个 destination = 60 张 H100。</p>
+<hr />
+<h2 id="2-摘要速览5-分钟版">2. 摘要速览（5 分钟版）<a class="headerlink" href="#2-摘要速览5-分钟版" title="Permanent link">🔗</a></h2>
+<h3 id="21-要解决的问题">2.1 要解决的问题<a class="headerlink" href="#21-要解决的问题" title="Permanent link">🔗</a></h3>
+<p>prefix caching 只有在重复请求回到<strong>仍持有该 prefix KV 的那台机器</strong>上时才省得掉 prefill。缓存本身管不了请求落在哪里，而路由策略存在一组直接冲突的取舍：</p>
+<ul>
+<li><strong>cache-blind 负载均衡</strong>把同一个 key 打散到 <span class="arithmatex">\(R\)</span> 台机器上。单台机器两次看到同一 key 的平均间隔按 <span class="arithmatex">\(R/\lambda_b\)</span> 放大——<strong>扩容反而让 prefix 变冷</strong>，尽管集群总缓存容量在增长。</li>
+<li><strong>固定亲和性</strong>（一致性哈希）保住了局部性，同时把 key 的访问倾斜<strong>原样映射成服务器队列倾斜</strong>，尾延迟由最热的那台机器决定，而不是集群均值。</li>
+<li><strong>反应式 cache-aware 路由</strong>（Preble、DualMap）按当前缓存与负载状态逐请求决策，但目标机器一旦被填满，溢出的那个请求同样丢掉了热 prefix。</li>
+</ul>
+<h3 id="22-核心方法">2.2 核心方法<a class="headerlink" href="#22-核心方法" title="Permanent link">🔗</a></h3>
+<p>CacheRoute 用一张<strong>周期性生成、周期内固定</strong>的路由表替代逐请求决策，三步：</p>
+<ol>
+<li><strong>算副本数</strong>：<span class="arithmatex">\(k_b = \max(1, \lceil \lambda_b / q_{\mathrm{cap}} \rceil)\)</span>，使每个 assignment 的预期负载不超过 <span class="arithmatex">\(q_{\mathrm{cap}}\)</span>。</li>
+<li><strong>准入 warm set</strong>：把缓存抽象成 <span class="arithmatex">\(C = RW\)</span> 个等大 prefix 槽位，按 <span class="arithmatex">\(\lambda_b\)</span> 降序准入，直到 <span class="arithmatex">\(\sum k_b \le C\)</span>。</li>
+<li><strong>放置</strong>：每个准入 key 贡献 <span class="arithmatex">\(k_b\)</span> 个大小为 <span class="arithmatex">\(\lambda_b / k_b\)</span> 的「作业」，按速率降序用 LPT 列表调度放到当前负载最轻的合法 destination 上。</li>
+</ol>
+<p>分发时，准入流量在自己固定的 <span class="arithmatex">\(T(b)\)</span> 内选负载最轻的一个；未准入的尾部流量走全集群 power-of-two-choices。规划器复杂度 <span class="arithmatex">\(O(|B|\log|B| + \sum_b k_b \log R)\)</span>，<strong>跑在请求路径之外</strong>，实测 <span class="arithmatex">\(R=30\)</span>、128,824 个 key 时构表耗时 345 ms。</p>
+<h3 id="23-主要结果">2.3 主要结果<a class="headerlink" href="#23-主要结果" title="Permanent link">🔗</a></h3>
+<p><strong>主实验</strong>（Llama-3.3-70B fp8，30 TP2 destination / 60 H100，top-<span class="arithmatex">\(K\)</span>128 活跃集，5 组配对种子，p99 指 TTFT）：</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>KV hit</th>
+<th>Cap.@3.5s</th>
+<th>Cap.@5s</th>
+<th>p99@100 QPS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flat-LB</td>
+<td><span class="arithmatex">\(64.1 \pm 1.3\%\)</span></td>
+<td><span class="arithmatex">\(42 \pm 20\)</span></td>
+<td>80</td>
+<td>5.7 s</td>
+</tr>
+<tr>
+<td>Sticky</td>
+<td><span class="arithmatex">\(87.3 \pm 2.4\%\)</span></td>
+<td>30</td>
+<td><span class="arithmatex">\(42 \pm 20\)</span></td>
+<td>8.5 s</td>
+</tr>
+<tr>
+<td>CHWBL</td>
+<td><span class="arithmatex">\(75.6 \pm 0.8\%\)</span></td>
+<td><span class="arithmatex">\(64 \pm 11\)</span></td>
+<td><span class="arithmatex">\(128 \pm 14\)</span></td>
+<td>3.8 s</td>
+</tr>
+<tr>
+<td>DualMap</td>
+<td><span class="arithmatex">\(88.7 \pm 1.9\%\)</span></td>
+<td><span class="arithmatex">\(58 \pm 22\)</span></td>
+<td><span class="arithmatex">\(84 \pm 32\)</span></td>
+<td>5.3 s</td>
+</tr>
+<tr>
+<td>Preble</td>
+<td><span class="arithmatex">\(72.0 \pm 0.7\%\)</span></td>
+<td><span class="arithmatex">\(76 \pm 11\)</span></td>
+<td>140</td>
+<td>3.8 s</td>
+</tr>
+<tr>
+<td><strong>CacheRoute</strong></td>
+<td><span class="arithmatex">\(\mathbf{93.2 \pm 0.5\%}\)</span></td>
+<td><span class="arithmatex">\(\mathbf{176 \pm 11}\)</span></td>
+<td><strong>180</strong></td>
+<td><strong>1.8 s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>即 <span class="arithmatex">\(2.3\times\)</span> 最强基线 Preble、<span class="arithmatex">\(4.2\times\)</span> Flat-LB。100 QPS 时只有 CacheRoute 落在 3.5 秒 SLO 以内（1.8 s vs 基线的 3.8–8.5 s）。</p>
+<p><strong>这张表最值得看的是两组反例</strong>：Sticky 和 DualMap 的 KV 命中率（87.3% / 88.7%）都比 CHWBL 和 Preble（75.6% / 72.0%）高，容量却更低。命中率与容量在这里<strong>不是单调关系</strong>。</p>
+<p><strong>第二组独立分布</strong>：top-<span class="arithmatex">\(K\)</span>128 时三个均衡的 cache-aware 策略并列 100 QPS；扩到 top-<span class="arithmatex">\(K\)</span>256 后 CacheRoute 160 QPS vs 最强基线 100 QPS。优势只在<strong>活跃集超出 warm 分配之后</strong>才出现。</p>
+<p><strong>负面结果</strong>（Table 5，论文主动给出）：在 32B 聚合负载 A 上，亲和性把 KV 命中率从 1.1% 提到 11.8%，可回收的 prefill 太少，容量反而掉到 Flat-LB 的 <span class="arithmatex">\(0.50\)</span>–<span class="arithmatex">\(0.67\times\)</span>。</p>
+<h3 id="24-我的评价">2.4 我的评价<a class="headerlink" href="#24-我的评价" title="Permanent link">🔗</a></h3>
+<p>值得精读，但<strong>读法要调整</strong>：它的方法部分（Algorithm 1）几乎没有新东西——top-rate 准入和 LPT 都是教科书级启发式，论文自己在 §1 结尾就写明「we do not claim a new scheduling primitive」。真正的价值在三处：</p>
+<ol>
+<li><strong>问题的定式化</strong>。把「prefix 亲和性 vs 负载均衡」这个人人都知道的矛盾，转成一个有明确输入（<span class="arithmatex">\(\{\lambda_b\}\)</span>、<span class="arithmatex">\(R\)</span>、<span class="arithmatex">\(q_{\mathrm{cap}}\)</span>、<span class="arithmatex">\(C\)</span>）、明确输出（路由表 <span class="arithmatex">\(T(b)\)</span>）、明确周期的规划问题。</li>
+<li><strong>测量的诚实度</strong>。5 组配对种子 + Student-<span class="arithmatex">\(t\)</span> 置信区间、右删失（right-censored）明确标注、reimplementation 而非原系统的声明、以及一整节负面结果。这个规格在系统论文里高于平均线不少。</li>
+<li><strong>它承认自己无法预测缓存驻留</strong>。§5.4 明确报告解析式 occupancy 模型在中位数处误差 14.3 个百分点、p90 处 44.7 个百分点，因此上线流程必须依赖 shadow replay。这是一个很有信息量的负面结果。</li>
+</ol>
+<p>对我关心的方向而言，最可迁移的一条是：<strong>「更高的缓存命中率」不是目标，「SLO 下的容量」才是</strong>。Table 1 和 Table 5 从两个方向都证明了这一点。</p>
+<hr />
+<h2 id="3-细读">3. 细读<a class="headerlink" href="#3-细读" title="Permanent link">🔗</a></h2>
+<h3 id="31-introduction">3.1 Introduction<a class="headerlink" href="#31-introduction" title="Permanent link">🔗</a></h3>
+<p>论文用四句话把问题钉死：</p>
+<ul>
+<li>prefix caching 已是 serving 引擎的标配（vLLM、SGLang），但<strong>缓存控制不了请求落到哪里</strong>。</li>
+<li>cache-blind 均衡把重复出现的 prefix 打散到多个目的地，拉长了它回到每一份缓存的时间。</li>
+<li>把 key 钉死在一个目的地恢复了局部性，同时把 key 的倾斜直接映射到服务器队列上。</li>
+<li>cache-aware 路由器改为按当前缓存和负载状态反应；一旦目标填满，把下一个请求溢出出去同样放弃了那份热 prefix。</li>
+</ul>
+<p><strong>应用场景</strong>：多租户对话助手（例如客服机器人），每个业务在多轮会话中携带一个稳定、可复用的上下文。业务之间的请求速率差异很大，因此简单的 stickiness 不成立。路由器需要在不制造「某台机器的队列决定全集群 p99」的前提下，把可复用 prefix 保持在本地。</p>
+<p><strong>三项贡献</strong>（论文原话的结构）：</p>
+<ol>
+<li>一个把缓存局部性与预期负载<strong>放在一起规划</strong>的 prefix-affinity 路由器；</li>
+<li>一次以 70B 模型和 60 张 H100 为中心的<strong>六策略硬件评测</strong>，含配对运行、第二组负载分布和 burst 实验；</li>
+<li>一个实测的<strong>操作包络</strong>（operating envelope），包含失败与打平的区间，以及「用 shadow replay 而非解析式驻留预测器」的证据。</li>
+</ol>
+<p><strong>Figure 1</strong> 的结构：周期性离线规划（聚合遥测 → 路由计划）与快速请求分发两条路径分离。图注里有一句关键的自我限定：主分布中每个 key 的 <span class="arithmatex">\(k_b = 1\)</span>，所以 70B 的改进来自<strong>准入、稳定的单副本亲和性、以及均衡放置</strong>；多目的地只在合成 whale 的机制研究中被触发。另有一句：<strong>cache residency is measured, not guaranteed by the plan</strong>。</p>
+<blockquote>
+<p><strong>批注</strong>：§1 最后一段的自我限定写得很克制——「Top-rate admission and LPT are established techniques」。这种把方法论新颖性主动降级、把贡献落在「路由设计 + 大规模测量 + 何时不该用」上的写法，在工业界论文里值得学。读的时候相应地要把注意力从 §3 移到 §5。</p>
+</blockquote>
+<h3 id="32-workload-and-failure-mode">3.2 Workload and Failure Mode<a class="headerlink" href="#32-workload-and-failure-mode" title="Permanent link">🔗</a></h3>
+<h4 id="21-半合成聚合负载">2.1 半合成聚合负载<a class="headerlink" href="#21-半合成聚合负载" title="Permanent link">🔗</a></h4>
+<p><strong>数据来源与脱敏</strong>：合成的请求流，用来模拟从去标识化运营遥测导出的<strong>聚合特征</strong>——每个 key 的速率、到达间隔、流行度分布。不使用原始请求、会话内容、用户数据或业务标识。</p>
+<p>主分布的统计量：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>取值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不透明业务 key 数</td>
+<td>128,824</td>
+</tr>
+<tr>
+<td>Gini 系数</td>
+<td>0.756</td>
+</tr>
+<tr>
+<td>头部集中度</td>
+<td>约 4% 的 key 占 47% 的请求</td>
+</tr>
+<tr>
+<td>单 key 上限</td>
+<td>没有任何 key 超过 0.3%</td>
+</tr>
+<tr>
+<td>每 key 到达间隔 CV 中位数</td>
+<td>1.93</td>
+</tr>
+<tr>
+<td>多轮会话占比</td>
+<td>80.8% 的请求属于多轮 thread</td>
+</tr>
+</tbody>
+</table>
+<p><strong>prompt 的构成</strong>（这段是理解全文的关键）：平均约 1.2K 输入 token，其中 90% 位于当前轮之前。但<strong>这些 token 的大部分并不构成路由机会</strong>：</p>
+<ul>
+<li><strong>全局模板</strong>对所有业务通用，在每个 destination 上都是热的——路由与否都不影响它。</li>
+<li><strong>检索得到的 few-shot 块</strong>变化频繁，在 67% 的相邻请求对之间打断了精确 prefix。</li>
+<li>真正可复用、且与 key 绑定的部分是<strong>每业务上下文，约 180 token，占 prompt 的 15%</strong>。</li>
+</ul>
+<p>论文按业务 key 路由，收益只在这一段在被驱逐之前回来时才兑现。</p>
+<blockquote>
+<p><strong>批注</strong>：这 15% 是整篇论文的分母。所有「93.2% KV 命中率」这类数字都要放在「可路由收益上限只有 prompt 的 15%」这个背景下读。也正因为可回收的部分很小，§5.3 里那些亲和性输掉的负载才不是意外——它们只是可回收份额更小的版本。</p>
+</blockquote>
+<p>论文另外说明：评测使用两组独立导出的半合成聚合分布，以及若干<strong>明确标注为合成</strong>的负载。合成流量保留给机制与边界测试，那里控制倾斜、突发性或 prefix 复用比匹配完整负载更重要。</p>
+<h4 id="22-为什么均衡与粘滞都会失败">2.2 为什么均衡与粘滞都会失败<a class="headerlink" href="#22-为什么均衡与粘滞都会失败" title="Permanent link">🔗</a></h4>
+<p><strong>均衡侧的量化论证</strong>：速率为 <span class="arithmatex">\(\lambda_b\)</span> 的业务被均匀喷洒到 <span class="arithmatex">\(R\)</span> 个目的地时，两次访问同一目的地的平均间隔按</p>
+<div class="arithmatex">\[\frac{R}{\lambda_b}\]</div>
+<p>放大。因此<strong>扩大集群可以让一个 prefix 变得更冷</strong>，尽管缓存总容量在增长。当这个重访时间超过有效驱逐时间，每个请求都要重做 prefill。</p>
+<p><strong>亲和性侧</strong>：一致性哈希保住局部性，最忙的哈希桶继承了负载倾斜。尾延迟随之跟随最热的目的地。Bounded hashing 与反应式的「复用 vs 负载」策略缓解了这个问题，但在容量上限触发后可能把请求溢出到冷目的地。</p>
+<p><strong>论文对问题的收敛</strong>：需要的是一个<strong>在速率分布可见的前提下计算出来的、稳定的多 key 分配</strong>。</p>
+<p>而是否该部署，取决于一个可测量的取舍：<strong>可回收的命中率增量是否压得过残留的负载倾斜</strong>。模型规模、精度、prefix 长度、offered load、活跃集宽度、缓存大小都会移动这个平衡点。论文在这里就预告了 §5.3 的结论：更高的缓存命中率<strong>可以</strong>伴随更低的容量。</p>
+<h3 id="33-cacheroute">3.3 CacheRoute<a class="headerlink" href="#33-cacheroute" title="Permanent link">🔗</a></h3>
+<pre class="mermaid"><code>graph TD
+    TEL["聚合遥测&lt;br/&gt;每 key 速率 λ_b"] --&gt; P1
+    QC["单 destination 实测&lt;br/&gt;q_cap（延迟/负载拐点）"] --&gt; P1
+    SLOT["槽位预算 C = R × W"] --&gt; P2
+    subgraph PLAN["周期性离线规划（请求路径之外，实测 345 ms）"]
+        P1["① 副本数&lt;br/&gt;k_b = max(1, ⌈λ_b/q_cap⌉)"] --&gt; P2["② 准入&lt;br/&gt;按 λ_b 降序，直到 Σk_b ≤ C"]
+        P2 --&gt; P3["③ 放置&lt;br/&gt;LPT：k_b 个大小 λ_b/k_b 的作业&lt;br/&gt;依次放到当前最轻的 destination"]
+    end
+    P3 --&gt; TB["路由表 T(b)&lt;br/&gt;控制周期内固定"]
+    TB --&gt; D1
+    subgraph DISPATCH["请求路径（查表 + 小集合内比负载）"]
+        D1{"key 已准入?"} --&gt;|是| D2["在 T(b) 内选负载最轻"]
+        D1 --&gt;|否| D3["全集群 power-of-two-choices"]
+    end
+    GATE["上线前 shadow replay 门禁"] -.验证.-&gt; TB</code></pre>
+<h4 id="331-规划目标31">3.3.1 规划目标（§3.1）<a class="headerlink" href="#331-规划目标31" title="Permanent link">🔗</a></h4>
+<p><strong>副本数（Load-based assignment count）</strong>。<span class="arithmatex">\(q_{\mathrm{cap}}\)</span> 从<strong>单个 destination 的延迟/负载拐点</strong>标定。被选中的业务获得</p>
+<div class="arithmatex">\[k_b = \max\left(1, \left\lceil \lambda_b / q_{\mathrm{cap}} \right\rceil\right)\]</div>
+<p>个目的地，使其每个 assignment 的预期负载至多为 <span class="arithmatex">\(q_{\mathrm{cap}}\)</span>。论文特意加了一句限定：<strong>这是一条负载控制规则，不是驱逐阈值，也不是缓存驻留保证</strong>。</p>
+<p><strong>Warm-set 准入</strong>。稳定的每业务 prefix 尺寸相近，因此规划器把缓存分配表示成 <span class="arithmatex">\(C = RW\)</span> 个 prefix 槽位，每个 destination <span class="arithmatex">\(W\)</span> 个。按 <span class="arithmatex">\(\lambda_b\)</span> 降序考察 key，在 <span class="arithmatex">\(\sum k_b \le C\)</span> 的条件下持续准入。论文明确写出这个模型的适用边界：<strong>等槽位模型不覆盖可复用 prefix 尺寸异质的负载</strong>，那类负载需要按字节计量与准入。</p>
+<p><strong>放置与分发</strong>。每个准入 key 贡献 <span class="arithmatex">\(k_b\)</span> 个大小为 <span class="arithmatex">\(\lambda_b / k_b\)</span> 的作业。先用<strong>预期的冷尾份额</strong>初始化每个 destination 的负载 <span class="arithmatex">\(L[r]\)</span>，然后按速率降序遍历准入 key，把每个作业分配给负载最轻的合法 destination。这是经典的 LPT 列表调度（Graham 1969），但论文指出：<strong>由于作业被拆分且存在「同一 key 的副本必须落在不同 destination」的约束，标准近似界不适用</strong>。</p>
+<p>控制周期内，准入流量在自己固定的 <span class="arithmatex">\(T(b)\)</span> 中选负载最轻的成员；其余流量在全集群用 power-of-two choices。</p>
+<p><strong>Algorithm 1（周期性路由表构建）</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>输入: 速率 {λ_b}, destination 数 R, 负载上限 q_cap, 槽位预算 C
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> 1: for each key b do
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a> 2:     k_b ← max(1, ⌈λ_b / q_cap⌉)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a> 3: end for
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a> 4: 按 λ_b 降序排序; 在 Σ k_b ≤ C 的条件下准入
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a> 5: 用预期冷尾负载初始化 L[r], r ∈ [1, R]
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a> 6: for each admitted b in decreasing λ_b do
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a> 7:     T(b) ← 具有最小 L 的 k_b 个不同 destination
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a> 8:     for each r ∈ T(b) do
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a> 9:         L[r] ← L[r] + λ_b / k_b
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>10:     end for
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>11: end for
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>12: 准入的 b 在 T(b) 内分发; 其余走 flat-LB
+</code></pre></div>
+<p><strong>开销</strong>：规划器复杂度 <span class="arithmatex">\(O(|B|\log|B| + \sum_b k_b \log R)\)</span>，运行在请求路径之外。实测在 <span class="arithmatex">\(R = 30\)</span>、128,824 个业务时构表耗时 <strong>345 ms</strong>。服务路径只是一次查表加上在一个小集合内比较负载。</p>
+<h4 id="332-运行语义32">3.3.2 运行语义（§3.2）<a class="headerlink" href="#332-运行语义32" title="Permanent link">🔗</a></h4>
+<p>三条约束，每一条都是后面实验的伏笔：</p>
+<ol>
+<li><strong>表在控制周期内固定</strong>。稳定性避免了逐请求的 cap 抖动，但漂移会让分配过时；装载替换表也会让一部分 assignment 从冷启动开始。§5.4 对这两个效应都做了测量。</li>
+<li><strong>不预留、不迁移 KV</strong>。准入的 prefix 与冷尾 prefix 共享引擎原生的缓存与驱逐策略，CacheRoute <strong>不提供任何解析式的驻留保证</strong>。启用一张表之前，先做 shadow replay，测量 served token-weighted KV 命中率与延迟。</li>
+<li><strong>主分布下 <span class="arithmatex">\(k_b \equiv 1\)</span></strong>。因为 <span class="arithmatex">\(\max_b \lambda_b &lt; q_{\mathrm{cap}}\)</span>，Algorithm 1 退化为「top-rate 准入 + 均衡的单副本放置」。复制机制保留用于过载保护，<strong>对 70B 的主结果没有贡献</strong>。</li>
+</ol>
+<blockquote>
+<p><strong>批注</strong>：第 3 条是这篇论文自我约束最强的一处。标题里的「prefix-affinity routing」在主实验中实际只用到了一半机制。作者把这件事在 §1、Figure 1 图注、§3.2 重复声明了三次，读者很难误读——这种做法值得学，但也说明主结果的机制解释只能靠 8B 上的合成 whale 实验来补。</p>
+</blockquote>
+<h3 id="34-experimental-method">3.4 Experimental Method<a class="headerlink" href="#34-experimental-method" title="Permanent link">🔗</a></h3>
+<p><strong>实现</strong>。客户端路由 harness 绕过服务部署自带的聚合负载均衡器，按单一策略发送每个请求。请求元数据中的实验标识把 served、token-weighted 的 KV 命中归因到正确的运行。所有策略共享同一套 serving stack、请求流、预热排除、offered-load 阶梯与健康判据。<strong>路由层既不改变模型执行，也不预留缓存容量。</strong></p>
+<p><strong>测试床</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>旗舰</td>
+<td>Llama-3.3-70B fp8，30 个 TP2 destination（60× H100），每 destination 实测 40,071 个 KV block（约 641K token）</td>
+</tr>
+<tr>
+<td>机制</td>
+<td>Llama-3.1-8B-Instruct bf16，30 个单 H100 destination</td>
+</tr>
+<tr>
+<td>辅助</td>
+<td>70B fp16 仅作为缓存压力的佐证，不用于容量结论</td>
+</tr>
+</tbody>
+</table>
+<p><strong>负载</strong>：主 replay 从半合成的<strong>峰值时段</strong>聚合分布抽取不透明 key；第二组独立采集的半合成聚合分布用于测试分布漂移；Poisson、CV 匹配的 Gamma、moving-block bootstrap 三种到达过程用于测试突发敏感性。</p>
+<p><strong>对比策略</strong>（六个，含自己）：Flat-LB（power-of-two-choices）、Sticky 一致性哈希（Karger 1997）、CHWBL（consistent hashing with bounded loads，Mirrokni 2018，<span class="arithmatex">\(\epsilon = 0.25\)</span>，由离线扫描选定）、DualMap 风格的双候选缓存/负载策略（Yuan 2026）、Preble 风格的 prefix 历史 + 实时负载策略（Srivatsa 2024，1.5 的 load-cap 因子）。</p>
+<p>后三者是<strong>在同一 harness 下按统一接口重实现的</strong>，论文明确声明：绝对结果不应被解读为对原系统的复现。</p>
+<p><strong>指标与统计</strong>：</p>
+<ul>
+<li><strong>SLO capacity</strong> = offered-QPS 阶梯上，p99 延迟不超过给定阈值<strong>且失败率不超过 5%</strong> 的最高一档。</li>
+<li>阈值按每次运行独立计算并报告均值；取到阶梯最大值的点标注为<strong>右删失（right-censored）</strong>。</li>
+<li>旗舰 top-<span class="arithmatex">\(K\)</span>128 结果用 5 组配对种子 <span class="arithmatex">\(\{2,3,4,5,6\}\)</span>，报告均值 <span class="arithmatex">\(\pm\)</span> 95% Student-<span class="arithmatex">\(t\)</span> 置信区间；top-<span class="arithmatex">\(K\)</span>256 确认实验用 8 组种子；第二分布与 8B 研究用 3 组配对种子，论文提醒<strong>其更宽的区间意味着小差异应当视为噪声</strong>。</li>
+<li>KV 命中率是 served 且 token-weighted 的实测值，不是模拟器预测。</li>
+</ul>
+<blockquote>
+<p><strong>批注</strong>：「SLO capacity 阶梯 + 右删失标注 + 配对种子 + 置信区间 + 重实现声明」这五件事同时出现，在 serving 论文里并不常见。缺点是阶梯粒度粗（30 / 60 / 80 / 100 / 120 / 140 / 160 / 180），所以 <span class="arithmatex">\(176 \pm 11\)</span> 这样的均值其实是若干个阶梯点的平均，容量的真实分辨率受限于阶梯本身。</p>
+</blockquote>
+<h3 id="35-evaluation">3.5 Evaluation<a class="headerlink" href="#35-evaluation" title="Permanent link">🔗</a></h3>
+<h4 id="51-70b--60-h100主结果">5.1 70B / 60 H100（主结果）<a class="headerlink" href="#51-70b--60-h100主结果" title="Permanent link">🔗</a></h4>
+<p>数字见 <a href="#23-主要结果">§2.3</a>。论文对这张表的解释：</p>
+<ul>
+<li>CacheRoute 的 served KV 命中率 93.2%，<strong>比 Flat-LB 高 29.1 个百分点</strong>。</li>
+<li>Sticky 与 DualMap 也回收了大量复用，但它们在 100 offered QPS 下的 p99 分别是 8.5 s 和 5.3 s——<strong>一旦队列主导尾部，局部性本身不起作用</strong>。</li>
+<li>Preble 与 CHWBL 把队列压得更平，缓存命中率却降到 72.0% 与 75.6%。</li>
+<li>CacheRoute 占据「高复用且没有可比热点」的中间地带。</li>
+</ul>
+<p><strong>top-<span class="arithmatex">\(K\)</span>256 确认</strong>（专门的 8 种子运行）：3.5 s 拐点 CacheRoute 80 QPS vs DualMap 60 QPS（<span class="arithmatex">\(1.33\times\)</span>）；5 s 拐点为 120 vs 100。KV 命中率 82% vs 60%。通过点的失败率在 0.8%–1.4% 之间。论文补了一句：<strong>早前观察到的高失败率在这次确认运行中没有复现</strong>。</p>
+<p><strong>第二组半合成分布</strong>（Table 2，3 组配对种子，p99 <span class="arithmatex">\(\le\)</span> 3.5 s）：</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>top-<span class="arithmatex">\(K\)</span>128</th>
+<th>top-<span class="arithmatex">\(K\)</span>256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flat-LB</td>
+<td>30</td>
+<td>30</td>
+</tr>
+<tr>
+<td>Sticky</td>
+<td>30</td>
+<td>60</td>
+</tr>
+<tr>
+<td>CHWBL</td>
+<td><strong>100</strong></td>
+<td>60</td>
+</tr>
+<tr>
+<td>DualMap</td>
+<td><strong>100</strong></td>
+<td>100</td>
+</tr>
+<tr>
+<td>Preble</td>
+<td>60</td>
+<td>60</td>
+</tr>
+<tr>
+<td><strong>CacheRoute</strong></td>
+<td><strong>100</strong></td>
+<td><strong>160</strong></td>
+</tr>
+</tbody>
+</table>
+<p>论文的解读值得原样记住：<strong>这个对比之所以有用，恰恰是因为它没有复现 Table 1 的每一格</strong>——优势只在活跃集超出 warm 分配之后才出现。</p>
+<h4 id="52-改进从哪来机制拆解">5.2 改进从哪来？（机制拆解）<a class="headerlink" href="#52-改进从哪来机制拆解" title="Permanent link">🔗</a></h4>
+<p>8B 测试床在更低负载下就饱和，因此能把局部性与均衡分开。</p>
+<p><strong>Table 3（8B SLO capacity，3 组配对种子，500 为右删失）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>top-<span class="arithmatex">\(K\)</span></th>
+<th>Flat-LB</th>
+<th>Sticky</th>
+<th>CHWBL</th>
+<th>DualMap</th>
+<th>Preble</th>
+<th>CacheRoute</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16</td>
+<td>500</td>
+<td>100</td>
+<td>500</td>
+<td>100</td>
+<td>500</td>
+<td><strong>500</strong></td>
+</tr>
+<tr>
+<td>32</td>
+<td>500</td>
+<td>100</td>
+<td>360</td>
+<td>100</td>
+<td>360</td>
+<td><strong>500</strong></td>
+</tr>
+<tr>
+<td>64</td>
+<td>500</td>
+<td>160</td>
+<td>360</td>
+<td>160</td>
+<td>360</td>
+<td><strong>500</strong></td>
+</tr>
+<tr>
+<td>128</td>
+<td>240</td>
+<td>240</td>
+<td>360</td>
+<td>360</td>
+<td>360</td>
+<td><strong>500</strong></td>
+</tr>
+<tr>
+<td>256</td>
+<td>160</td>
+<td>240</td>
+<td>240</td>
+<td>360</td>
+<td>360</td>
+<td><strong>500</strong></td>
+</tr>
+<tr>
+<td>2000</td>
+<td>100</td>
+<td><strong>360</strong></td>
+<td>160</td>
+<td><strong>360</strong></td>
+<td>160</td>
+<td><strong>360</strong></td>
+</tr>
+</tbody>
+</table>
+<p>论文的自我约束：top-<span class="arithmatex">\(K \in \{16,32,64\}\)</span> 的若干结果撞上 500 QPS 的扫描天花板，<strong>这些打平是右删失，不是容量相等的证据</strong>。可分辨的最大六策略优势是 <span class="arithmatex">\(1.39\times\)</span>（出现在 top-<span class="arithmatex">\(K\)</span>128 与 256）。到 top-<span class="arithmatex">\(K\)</span>2000 时 warm 分配覆盖的流量份额变小，CacheRoute 的拐点降到 360 QPS，仍并列最佳。</p>
+<p><strong>Table 4（组件消融，合成 whale 负载，top-<span class="arithmatex">\(K\)</span>128，3 种子）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>KV hit</th>
+<th>Imbalance</th>
+<th>Capacity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flat-LB</td>
+<td><span class="arithmatex">\(56 \pm 1.9\%\)</span></td>
+<td><span class="arithmatex">\(1.00\times\)</span></td>
+<td>240</td>
+</tr>
+<tr>
+<td>+ affinity</td>
+<td><span class="arithmatex">\(88 \pm 1.5\%\)</span></td>
+<td><span class="arithmatex">\(3.46\times\)</span></td>
+<td>240</td>
+</tr>
+<tr>
+<td>+ replication</td>
+<td><span class="arithmatex">\(88 \pm 1.6\%\)</span></td>
+<td><span class="arithmatex">\(2.60\times\)</span></td>
+<td>240</td>
+</tr>
+<tr>
+<td>+ LPT（完整）</td>
+<td><span class="arithmatex">\(90 \pm 1.0\%\)</span></td>
+<td><span class="arithmatex">\(\mathbf{1.24\times}\)</span></td>
+<td><strong>500</strong></td>
+</tr>
+</tbody>
+</table>
+<p>这张表是全文最有说服力的一张：</p>
+<ul>
+<li>只加亲和性，KV 命中率从 56% 跳到 88%，<strong>容量纹丝不动</strong>（240），因为不均衡度被推到 <span class="arithmatex">\(3.46\times\)</span>。</li>
+<li>再加按负载比例的复制，不均衡度降到 <span class="arithmatex">\(2.60\times\)</span>，<strong>容量仍然不动</strong>——随机放置没能把这份回收变成可用容量。</li>
+<li>只有当 LPT 放置把不均衡度压到 <span class="arithmatex">\(1.24\times\)</span>，容量才冲到 500 的天花板。</li>
+</ul>
+<p>论文的总结句：<strong>affinity 回收被缓存的工作，placement 让这份回收在饱和状态下变得可用</strong>。并且再次限定：注入的 whale 是复制这一行在消融中出现的唯一原因，<strong>这一行不解释主结果</strong>。</p>
+<h4 id="53-操作包络与负面结果">5.3 操作包络与负面结果<a class="headerlink" href="#53-操作包络与负面结果" title="Permanent link">🔗</a></h4>
+<p><strong>Table 5（实测运行区间，容量倍数 = CacheRoute / Flat-LB）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>Regime</th>
+<th>Flat hit</th>
+<th>Aff. hit</th>
+<th>Cap. mult.</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8B synthetic whales</td>
+<td>9.3%</td>
+<td>77.0%</td>
+<td><span class="arithmatex">\(2\)</span>–<span class="arithmatex">\(6\times\)</span></td>
+<td><strong>win</strong></td>
+</tr>
+<tr>
+<td>Aggregate A–32B</td>
+<td>1.1%</td>
+<td>11.8%</td>
+<td><span class="arithmatex">\(0.50\)</span>–<span class="arithmatex">\(0.67\times\)</span></td>
+<td><strong>lose</strong></td>
+</tr>
+<tr>
+<td>Aggregate B–32B</td>
+<td>0.8%</td>
+<td>8.5%</td>
+<td><span class="arithmatex">\(1.0\times\)</span></td>
+<td><strong>tie</strong></td>
+</tr>
+</tbody>
+</table>
+<p>论文的解释：8B 合成 whale 负载提供了大量<strong>可回收的 miss</strong>，因此偏向 CacheRoute。32B 聚合负载 A 上，亲和性只把 KV 命中率从 1.1% 挪到 11.8%，这个改进抵不过残留的倾斜，容量掉到 Flat-LB 的一半到三分之二。负载 B 达到 8.5% 的亲和命中率，在 5 s SLO 下与 Flat-LB 打平。</p>
+<p>关键的一句：<strong>「Model size by itself does not distinguish these outcomes.」</strong> 决定胜负的是可回收 prefill 的绝对量，不是模型大小。</p>
+<p><strong>部署门禁</strong>：用一次短 shadow replay 作为闸门——保留候选分配但不把响应返回给用户，在「当前拐点以下一档」和「拐点附近」两个负载点上，对比 served KV 命中率、每 destination 负载、p99 与 Flat-LB。论文写得很硬：<strong>缓存命中率提升不够，只有 p99 或容量改善时才启用该计划</strong>。模型、精度、上下文长度、batching、缓存分配、活跃集分布中任何一项变化后，都要重跑这道门禁。</p>
+<h4 id="54-突发性与重规划">5.4 突发性与重规划<a class="headerlink" href="#54-突发性与重规划" title="Permanent link">🔗</a></h4>
+<p><strong>到达突发性</strong>。在 70B fp8 / top-<span class="arithmatex">\(K\)</span>128 上：</p>
+<ul>
+<li>匹配负载边际 CV = 1.9 的 Gamma 到达过程使 CacheRoute 的 3.5 s 容量<strong>下降一个阶梯</strong>（180 → 160 QPS），KV 命中率从 94% 到 90%；Flat-LB 保持在 30 QPS。</li>
+<li>另一次单次扫描的对比中，用聚合负载 A 的 22,639 个实测到达间隔做 moving-block bootstrap（块长 50，经验 CV = 2.73），CacheRoute 保持 180 QPS 与 93% 命中率，而 Flat-LB <strong>左删失到 30 QPS 以下</strong>。</li>
+</ul>
+<p>论文限定：这是两策略、单活跃集的敏感性测试，不是对所有基线的断言。它证明的是主改进<strong>不依赖被平滑过的到达过程</strong>。</p>
+<p><strong>速率漂移与重映射</strong>（这一段的数字最有工程价值）。用对数正态随机游走（<span class="arithmatex">\(\sigma = 0.3\)</span>）在六个周期上扰动主速率向量，在 160 QPS 下比较「新鲜计划」与「过时一个周期的计划」：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>从头重算 LPT 改变的 key→destination 集合比例</td>
+<td><strong>94.5%</strong></td>
+</tr>
+<tr>
+<td>其中改变了 assignment 数量的 key 比例</td>
+<td>仅 1.1%</td>
+</tr>
+<tr>
+<td>过时计划的平均代价</td>
+<td><span class="arithmatex">\(-1.0\)</span> 个百分点 KV 命中率，<span class="arithmatex">\(+192\)</span> ms p99</td>
+</tr>
+<tr>
+<td>最差一次切换的代价</td>
+<td><span class="arithmatex">\(-3.0\)</span> 个百分点，<span class="arithmatex">\(+858\)</span> ms</td>
+</tr>
+<tr>
+<td>装载新计划期间的重新预热瞬态</td>
+<td><strong><span class="arithmatex">\(-13.6\)</span> 个百分点 KV 命中率</strong></td>
+</tr>
+</tbody>
+</table>
+<p>结论：部署应当<strong>保持既有放置，直到实测的过时代价超过预热代价</strong>。论文直言 <strong>churn-aware replanner 尚未实现</strong>。</p>
+<p><strong>为什么不做解析式驻留预测</strong>。论文对 70B fp8 引擎测试了一个单特征时间（single-characteristic-time）的占用模型。组件级插桩通过了七项隔离检查，每个 TP2 destination 暴露 40,071 个实测 KV block。即便如此，预测在中位数处偏离 served 命中率 <strong>14.3 个百分点</strong>，在 p90 处偏离 <strong>44.7 个百分点</strong>。观测曲线呈现「先急剧下降后进入平台」的形状，<strong>落在被测模型族之外</strong>。论文拒绝用这个模型做容量规划，也拒绝在没有直接证据的情况下把这个形状归因于某个引擎机制。这次失败正是 shadow replay 留在部署流程里的原因。</p>
+<blockquote>
+<p><strong>批注</strong>：94.5% 的 key 会被重映射、而只有 1.1% 的 key 改变了副本数——这个对比说明 LPT 的输出对输入速率的微小扰动极不稳定。这是贪心放置的固有性质：<span class="arithmatex">\(L[r]\)</span> 上的任何微小差异都会改变后续所有作业的落点。论文观察到了现象但没有给出解法（churn-aware replanner 未实现），这是一个明确可做的后续工作。</p>
+</blockquote>
+<h3 id="36-discussion-and-limitations">3.6 Discussion and Limitations<a class="headerlink" href="#36-discussion-and-limitations" title="Permanent link">🔗</a></h3>
+<p><strong>可泛化的部分</strong>：规划器需要三个条件——一个稳定的路由 key、一段可复用的 key 专属 prefix、以及在至少一个缓存预热周期内仍然有效的速率估计。这里用的业务 key 可以替换成租户、文档集合、agent 或应用。由于路由器改变的是放置而非模型执行，它不依赖特定的模型架构或缓存实现。</p>
+<p><strong>尚不可泛化的部分</strong>（论文自述）：</p>
+<ul>
+<li>等槽位准入假设稳定 prefix 的尺寸大致均匀。论文<strong>没有</strong>测量面向异质长上下文的按字节价值函数，也<strong>不主张</strong>任何 byte-knapsack 或最优准入的结论。</li>
+<li>冷尾流量与准入 prefix 共享原生缓存，<strong>可以驱逐已准入的 prefix</strong>。</li>
+<li>聚合 replay 保留了 key 流行度，以及（对 burst 实验）短程的间隔相关性；<strong>不保留精确的每 key 时间戳</strong>。</li>
+<li>两个分布无法代表所有市场或应用。</li>
+<li>Preble、DualMap、CHWBL 是共同 harness 下的重实现，不是原始代码库；它们在匹配硬件上比较路由行为，但不端到端复现已发表的系统。</li>
+<li>若干 8B 拐点在 500 QPS 处右删失，因此只在扫描能分辨时报告比值。3 种子研究的 <span class="arithmatex">\(t\)</span> 区间较宽，5 种子旗舰与 8 种子确认提供更强的证据。</li>
+</ul>
+<p><strong>部署检查清单</strong>：从聚合 key 速率与单 destination 的 <span class="arithmatex">\(q_{\mathrm{cap}}\)</span> 测量开始 → 选择保守的 warm 槽位分配 → 在匹配负载下对计划与 Flat-LB 做 shadow replay，比较 served KV 命中率、不均衡度、p99 与失败率 → 只有计划获胜才放金丝雀流量 → 当活跃集或实测 p99 离开该包络时回退到 Flat-LB。论文强调：<strong>这些步骤都不需要请求内容</strong>。</p>
+<h3 id="37-related-work">3.7 Related Work<a class="headerlink" href="#37-related-work" title="Permanent link">🔗</a></h3>
+<p>论文把相关工作按「在哪一层解决问题」组织：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>代表工作</th>
+<th>与 CacheRoute 的关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>引擎内 prefix 复用</td>
+<td>PagedAttention/vLLM、SGLang</td>
+<td>让复用高效；CacheRoute 决定请求去哪个 destination</td>
+</tr>
+<tr>
+<td>反应式 cache-aware 路由</td>
+<td>Preble、DualMap</td>
+<td>逐请求打分；CacheRoute 构建一个控制周期的全局速率表</td>
+</tr>
+<tr>
+<td>稳定亲和 + 负载控制</td>
+<td>一致性哈希、CHWBL</td>
+<td>同上，CacheRoute 用速率而非哈希决定放置</td>
+</tr>
+<tr>
+<td>KV 状态迁移/池化</td>
+<td>Mooncake、MemServe</td>
+<td>搬运或池化 KV，而非靠入口亲和性保住它</td>
+</tr>
+<tr>
+<td>请求迁移</td>
+<td>Llumnix</td>
+<td>事后迁移请求修复不均衡</td>
+</tr>
+<tr>
+<td>PD 分离</td>
+<td>DistServe、Splitwise</td>
+<td>分离 prefill 与 decode 的放置</td>
+</tr>
+</tbody>
+</table>
+<p>论文特别指出：后三类系统<strong>仍然可以使用一个入口计划</strong>，来避免路由本身造成的重复 prefill——即这些方案与 CacheRoute 是可组合的。</p>
+<p>另有一段处理 GeoCover（路边单元选址）：论文明说<strong>两个问题的算法与保证不能互相转移</strong>，共同点只是「在倾斜需求下分配有限基础设施」。</p>
+<blockquote>
+<p><strong>批注</strong>：主动声明一篇相关工作「不能迁移」，这是一个不常见但很好的做法。（同为 Cheng 姓氏的自引，作者选择明确划清界限而非模糊借势。）</p>
+</blockquote>
+<h3 id="38-conclusion">3.8 Conclusion<a class="headerlink" href="#38-conclusion" title="Permanent link">🔗</a></h3>
+<p>CacheRoute 每个控制周期规划一次 prefix 亲和性与预期负载。在 60 张 H100 上的 70B fp8 模型上，达到 93.2% 的 served KV 命中率，以及在 3.5 s p99 SLO 下最强基线 <span class="arithmatex">\(2.3\times\)</span> 的容量。</p>
+<p>结论段的后半句才是这篇论文真正想留下的东西：<strong>负面负载设定了同等重要的边界——当可回收的 prefix 工作量很小时，亲和性会降低容量。因此任何真实部署都应当用 shadow replay 测出自己的边界。</strong></p>
+<hr />
+<h2 id="4-关键问题解析">4. 关键问题解析<a class="headerlink" href="#4-关键问题解析" title="Permanent link">🔗</a></h2>
+<h3 id="q1-计划式路由相比反应式cache-aware-路由本质优势是什么代价是什么">Q1: 「计划式」路由相比「反应式」cache-aware 路由，本质优势是什么？代价是什么？<a class="headerlink" href="#q1-计划式路由相比反应式cache-aware-路由本质优势是什么代价是什么" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>:</p>
+<p><strong>优势在于决策时可见的信息范围。</strong> 反应式路由器（Preble、DualMap）在请求到达的那一刻，只能看到<strong>当前</strong>的缓存与负载状态。它必须为这一个请求做局部最优选择，而这个选择对后续请求的影响不在它的目标函数里。当目标机器填满，它只有两个选项——排队等待（吃延迟）或溢出到冷机器（丢 prefix），两者都是被动的。</p>
+<p>计划式路由器在构表时看到的是<strong>整个 key 的速率分布</strong> <span class="arithmatex">\(\{\lambda_b\}\)</span>。它可以在任何请求到达之前就知道：哪些 key 的总量会撑爆一台机器、槽位预算够放多少 key、把高速率 key 先放哪里能让后面的 key 有地方可去。LPT 之所以有效，正是因为它要求「按作业大小降序处理」——这个顺序只有在离线看到全部作业时才存在。</p>
+<p><strong>Table 4 给出了这一点的直接证据</strong>：亲和性把 KV 命中率从 56% 提到 88%（<span class="arithmatex">\(+32\)</span> 点），容量停在 240 不动；把不均衡度从 <span class="arithmatex">\(3.46\times\)</span> 压到 <span class="arithmatex">\(1.24\times\)</span> 之后，容量才跳到 500。<strong>回收缓存的是亲和性，把回收变成容量的是全局放置。</strong> 反应式策略拿不到做全局放置所需的信息。</p>
+<p><strong>代价有三项，论文都测了</strong>：</p>
+<ol>
+<li><strong>过时（staleness）</strong>。速率漂移后计划失效。实测：过时一个周期平均损失 1.0 个百分点命中率和 192 ms p99，最差一次是 3.0 点和 858 ms。</li>
+<li><strong>切换瞬态</strong>。装载新表会让部分 assignment 冷启动，实测造成 <strong>13.6 个百分点</strong>的 KV 命中率瞬时下跌——这个代价比过时的代价大一个量级。</li>
+<li><strong>规划不稳定</strong>。速率的微小扰动导致 94.5% 的 key 被重映射。这使得「频繁重规划」这条看似显然的解法反而有害。</li>
+</ol>
+<p>三项合起来推出论文的运维规则：<strong>保持既有放置，直到实测的过时代价超过预热代价</strong>。</p>
+<h3 id="q2-warm-set-的准入判据是什么key-的速率如何估计">Q2: warm set 的准入判据是什么？key 的速率如何估计？<a class="headerlink" href="#q2-warm-set-的准入判据是什么key-的速率如何估计" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>:</p>
+<p><strong>判据本身很简单</strong>：把缓存抽象成 <span class="arithmatex">\(C = RW\)</span> 个<strong>等大</strong>的 prefix 槽位，按 <span class="arithmatex">\(\lambda_b\)</span> 降序遍历 key，只要 <span class="arithmatex">\(\sum k_b \le C\)</span> 就继续准入。这是标准的 top-rate 准入，论文不主张新颖性。</p>
+<p><strong>三个值得注意的细节</strong>：</p>
+<ul>
+<li><strong>准入的成本单位是 <span class="arithmatex">\(k_b\)</span> 而非 1</strong>。一个需要 3 个副本的 key 消耗 3 个槽位。这让准入与副本数在同一个预算里竞争，热 key 的「过载保护」是要用其他 key 的准入名额来买的。</li>
+<li><strong>等槽位假设是硬前提</strong>。论文明确写明这个模型不覆盖可复用 prefix 尺寸异质的负载，并且<strong>拒绝</strong>声称任何 byte-knapsack 或最优准入的结果。在本文负载里这个假设成立，因为可复用段是「每业务上下文，约 180 token」，各业务之间尺寸相近。</li>
+<li><strong>准入不等于驻留</strong>。准入的 prefix 和冷尾 prefix 共享引擎原生缓存与驱逐策略，CacheRoute 既不预留也不迁移 KV block。论文反复强调 cache residency is <strong>measured</strong>, not guaranteed。</li>
+</ul>
+<p><strong>速率估计</strong>：论文说的是「从聚合遥测得到的每 key 速率」，<span class="arithmatex">\(\{\lambda_b\}\)</span> 是 Algorithm 1 的输入，<strong>估计方法本身没有展开</strong>——没有说明窗口长度、是否做指数平滑、如何处理新出现的 key。这是方法描述中最薄弱的一环。相关的可推断线索只有：负载统计给出每 key 到达间隔的 CV 中位数为 1.93（相当突发），而 §5.4 用 <span class="arithmatex">\(\sigma = 0.3\)</span> 的对数正态随机游走来模拟周期间漂移。窗口长度与控制周期长度都<strong>未给出具体值</strong>。</p>
+<p><strong>证据边界</strong>：<code>&lt;待确认&gt;</code> 速率估计的窗口、平滑方式与控制周期时长在正文中均未披露；可能在附录（Supplementary Material / Appendix A Workload Detail）中，本次精读未覆盖附录。</p>
+<h3 id="q3-放置阶段解决的是什么优化问题开销多大">Q3: 放置阶段解决的是什么优化问题？开销多大？<a class="headerlink" href="#q3-放置阶段解决的是什么优化问题开销多大" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>:</p>
+<p><strong>问题类型</strong>：这是<strong>带约束的多处理机调度</strong>（<span class="arithmatex">\(P \| C_{\max}\)</span> 的变体）。目标是最小化 makespan——在这里就是最大 destination 负载 <span class="arithmatex">\(\max_r L[r]\)</span>，因为 p99 由最热的机器决定。</p>
+<p>三处与教科书版本的差异：</p>
+<ol>
+<li><strong>作业可拆分</strong>：一个 key 被拆成 <span class="arithmatex">\(k_b\)</span> 个大小为 <span class="arithmatex">\(\lambda_b / k_b\)</span> 的作业。</li>
+<li><strong>同 key 副本必须落在不同 destination</strong>（distinct-destination 约束）。</li>
+<li><strong>机器有非零初始负载</strong>：<span class="arithmatex">\(L[r]\)</span> 用预期的冷尾份额初始化，而非从 0 开始。</li>
+</ol>
+<p>论文因此明确指出：<strong>Graham 的 <span class="arithmatex">\(4/3 - 1/(3m)\)</span> 近似界在这里不适用</strong>。这是一处很克制的处理——引用了 LPT 的出处，同时拒绝借用它的理论保证。</p>
+<p><strong>求解方式</strong>：贪心。按 <span class="arithmatex">\(\lambda_b\)</span> 降序遍历准入 key，为每个 key 选出 <span class="arithmatex">\(L\)</span> 最小的 <span class="arithmatex">\(k_b\)</span> 个不同 destination，然后更新这些 destination 的负载。</p>
+<p><strong>开销</strong>：</p>
+<div class="arithmatex">\[O\left(|B|\log|B| + \sum_b k_b \log R\right)\]</div>
+<p>第一项是排序，第二项是每个作业一次堆操作。实测 <span class="arithmatex">\(R = 30\)</span>、<span class="arithmatex">\(|B| = 128{,}824\)</span> 时构表 <strong>345 ms</strong>，且<strong>完全在请求路径之外</strong>。请求路径上只剩一次查表 + 在 <span class="arithmatex">\(k_b\)</span> 个候选中比较负载——主分布下 <span class="arithmatex">\(k_b = 1\)</span>，所以实际就是一次查表。</p>
+<p><strong>效果</strong>：Table 4 中 LPT 把不均衡度从 <span class="arithmatex">\(2.60\times\)</span>（随机放置）压到 <span class="arithmatex">\(1.24\times\)</span>，这是容量从 240 跳到 500 的唯一原因。</p>
+<p><strong>没有解决的问题</strong>：贪心对输入扰动极不稳定（Q1 中的 94.5% 重映射）。一个显然的改进方向是在目标函数里加入「与上一版计划的差异惩罚」，把它变成一个带切换代价的重优化问题——论文称之为 churn-aware replanner，明确表示未实现。</p>
+<h3 id="q4-允许热-key-映射到多个-destination-时如何避免-kv-复制带来的显存放大">Q4: 允许热 key 映射到多个 destination 时，如何避免 KV 复制带来的显存放大？<a class="headerlink" href="#q4-允许热-key-映射到多个-destination-时如何避免-kv-复制带来的显存放大" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: <strong>论文没有处理这个问题，因为主实验里它不存在。</strong></p>
+<p>三层回答：</p>
+<p><strong>第一层：主实验中复制根本没有触发。</strong> 主分布满足 <span class="arithmatex">\(\max_b \lambda_b &lt; q_{\mathrm{cap}}\)</span>，因此 <span class="arithmatex">\(k_b \equiv 1\)</span>。论文在 §1、Figure 1 图注和 §3.2 三处声明了这一点。没有任何 key 的 KV 被复制到多台机器。</p>
+<p><strong>第二层：复制确实带来放大，代价被算在槽位预算里。</strong> 当 <span class="arithmatex">\(k_b &gt; 1\)</span> 时，同一段 prefix 会在 <span class="arithmatex">\(k_b\)</span> 台机器上各占一份 KV。CacheRoute 对这个成本的记账方式是：准入时该 key 消耗 <span class="arithmatex">\(k_b\)</span> 个槽位而非 1 个。也就是说，<strong>显存放大被转化成了对其他 key 准入名额的挤占</strong>。这个记账在等槽位模型下是自洽的。</p>
+<p><strong>第三层：这个记账没有被实验验证过。</strong> 复制只在 8B 的合成 whale 消融（Table 4 第三行）中出现，而那一行报告的是 KV 命中率（88%）、不均衡度（<span class="arithmatex">\(2.60\times\)</span>）和容量（240），<strong>没有报告显存占用或槽位竞争的实际影响</strong>。论文自己在 §5.2 结尾写明：注入的 whale 是复制出现的唯一原因，这一行不解释主结果。</p>
+<p><strong>我的判断</strong>：在主分布这种「4% 的 key 占 47% 请求、但没有任何单 key 超过 0.3%」的形态下，复制机制大概率长期不会触发。它更像是一条防御性的过载保护路径，而不是被验证过的主力机制。真正会触发复制的是存在少数超大租户的场景，而那正是论文没有真实负载数据的场景。</p>
+<h3 id="q5-控制周期怎么定突发流量时的降级路径是什么">Q5: 控制周期怎么定？突发流量时的降级路径是什么？<a class="headerlink" href="#q5-控制周期怎么定突发流量时的降级路径是什么" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>:</p>
+<p><strong>周期长度：论文没有给出具体值。</strong> §3.2 只说「表在一个控制周期内保持固定」。§5.4 的漂移实验用「六个周期」作为时间轴，但没有把周期换算成秒或分钟。这是复现这套方法的主要障碍之一。</p>
+<p>论文给出的是<strong>判断何时该换表的规则</strong>，而非固定周期：</p>
+<blockquote>
+<p>部署应当保持既有放置，直到<strong>实测的过时代价超过预热代价</strong>。</p>
+</blockquote>
+<p>配套的量化依据（160 QPS，<span class="arithmatex">\(\sigma = 0.3\)</span> 对数正态随机游走）：过时一个周期的平均代价是 <span class="arithmatex">\(-1.0\)</span> 个百分点命中率 / <span class="arithmatex">\(+192\)</span> ms p99，最差 <span class="arithmatex">\(-3.0\)</span> 点 / <span class="arithmatex">\(+858\)</span> ms；而换表的瞬态代价是 <span class="arithmatex">\(-13.6\)</span> 个百分点命中率。两者相差一个量级，<strong>这条规则实际上强烈偏向「少换表」</strong>。</p>
+<p><strong>突发流量的表现</strong>（§5.4）：</p>
+<table>
+<thead>
+<tr>
+<th>到达过程</th>
+<th>CacheRoute</th>
+<th>Flat-LB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基准</td>
+<td>180 QPS，94% hit</td>
+<td>30 QPS</td>
+</tr>
+<tr>
+<td>Gamma，CV = 1.9</td>
+<td>160 QPS（降一档），90% hit</td>
+<td>30 QPS</td>
+</tr>
+<tr>
+<td>Moving-block bootstrap，CV = 2.73</td>
+<td>180 QPS，93% hit</td>
+<td>左删失，&lt; 30 QPS</td>
+</tr>
+</tbody>
+</table>
+<p>突发性对 CacheRoute 的影响是<strong>降一个阶梯或不降</strong>，而 Flat-LB 在最强突发下直接跌破扫描下限。论文对这组结果的限定同样明确：两策略、单活跃集的敏感性测试，不能推广到所有基线。</p>
+<p><strong>降级路径</strong>：两条，粒度不同。</p>
+<ol>
+<li><strong>请求级</strong>：未准入的 key 始终走全集群 power-of-two-choices。这条路径一直开着，冷尾流量本来就不依赖计划。</li>
+<li><strong>策略级</strong>：§6 的部署检查清单要求「当活跃集或实测 p99 离开包络时<strong>回退到 Flat-LB</strong>」。</li>
+</ol>
+<p>值得注意的是<strong>没有的东西</strong>：没有周期内的自适应机制。计划在周期内完全固定，突发只能靠 <span class="arithmatex">\(T(b)\)</span> 内部选最轻成员这一个自由度来吸收——而在 <span class="arithmatex">\(k_b = 1\)</span> 的主分布下，这个自由度等于零。CacheRoute 在主实验配置下对突发的鲁棒性，完全来自「命中率高 → 每个请求的工作量小 → 队列本身消化得快」。</p>
+<h3 id="q6-半合成负载对结论的外部效度有多大影响">Q6: 半合成负载对结论的外部效度有多大影响？<a class="headerlink" href="#q6-半合成负载对结论的外部效度有多大影响" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 分三个层次评估。</p>
+<p><strong>保留了什么</strong>。论文说明聚合 replay 保留了每 key 速率、到达间隔、流行度分布；burst 实验额外保留了短程的间隔相关性（moving-block bootstrap，块长 50，用了 22,639 个实测间隔）。主分布的形态统计相当完整：128,824 个 key、Gini 0.756、4% 的 key 占 47% 请求、单 key 上限 0.3%、每 key 到达间隔 CV 中位数 1.93、80.8% 的请求属于多轮 thread。</p>
+<p><strong>丢掉了什么</strong>（论文自述）：<strong>不保留精确的每 key 时间戳</strong>。这一条对本文的核心机制影响不小——prefix 是否命中取决于「同一 key 的两次请求之间，这台机器上发生了多少其他工作」，也就是取决于<strong>跨 key 的时序耦合</strong>。边际速率与边际间隔分布匹配，并不保证联合时序结构匹配。举例：真实负载中多个大租户的峰值可能同时发生，而独立采样的合成流会把这种同步性抹平，从而低估最坏情况下的驱逐压力。</p>
+<p><strong>这个缺口有多大程度被别的证据补上</strong>：</p>
+<ul>
+<li>论文用了<strong>两组独立采集</strong>的聚合分布，第二组的结果确实与第一组不同（top-<span class="arithmatex">\(K\)</span>128 打平、top-<span class="arithmatex">\(K\)</span>256 才分开），说明结论对分布敏感且作者没有挑选性报告。</li>
+<li>§5.3 的三组运行区间中有两组是 32B 聚合负载，其中一组 CacheRoute <strong>输</strong>给 Flat-LB。主动报告失败案例大幅提高了整体可信度。</li>
+<li>KV 命中率是 served 且 token-weighted 的<strong>实测值</strong>，不是模拟。</li>
+</ul>
+<p><strong>我的结论</strong>：半合成对<strong>机制性结论</strong>（亲和性回收命中率、LPT 把命中率变成容量、命中率与容量非单调）的影响有限，因为这些结论在 8B 合成 whale、70B 半合成、32B 半合成三类负载上是一致的。它对<strong>绝对数字</strong>（<span class="arithmatex">\(2.3\times\)</span>、176 QPS）的影响较大——这些数字应当读作「在这一类倾斜且 prefix 可复用份额约 15% 的负载上」。论文自己在 §6 写了「两个分布无法代表所有市场或应用」，并把 shadow replay 设成了强制门禁，等于承认了这一点。</p>
+<h3 id="q7-为什么更高的-kv-命中率反而可能带来更低的容量">Q7: 为什么更高的 KV 命中率反而可能带来更低的容量？<a class="headerlink" href="#q7-为什么更高的-kv-命中率反而可能带来更低的容量" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>: 这是全文最重要的一条，两组数据从不同方向证明了它。</p>
+<p><strong>方向一：同一负载下的横向对比</strong>（Table 1）。</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>KV hit</th>
+<th>Cap.@3.5s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sticky</td>
+<td>87.3%</td>
+<td>30</td>
+</tr>
+<tr>
+<td>DualMap</td>
+<td>88.7%</td>
+<td>58</td>
+</tr>
+<tr>
+<td>CHWBL</td>
+<td>75.6%</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Preble</td>
+<td>72.0%</td>
+<td>76</td>
+</tr>
+</tbody>
+</table>
+<p>Sticky 和 DualMap 的命中率比 CHWBL、Preble 高 12–17 个百分点，容量却低。原因：Sticky 把 key 倾斜原样映射到队列上，最热的那台机器决定了全集群 p99。<strong>命中率是集群平均量，p99 是极值量</strong>——平均改善救不了极值。</p>
+<p><strong>方向二：同一策略下的纵向消融</strong>（Table 4）。</p>
+<p>只加 affinity：命中率 <span class="arithmatex">\(56\% \to 88\%\)</span>，容量 <span class="arithmatex">\(240 \to 240\)</span>。不均衡度同时从 <span class="arithmatex">\(1.00\times\)</span> 涨到 <span class="arithmatex">\(3.46\times\)</span>。这一步把每个请求的期望工作量降低了，却把工作量分配得更不均匀，两个效应互相抵消。</p>
+<p><strong>方向三：可回收量太小时的净损失</strong>（Table 5）。</p>
+<p>32B 聚合负载 A：命中率 <span class="arithmatex">\(1.1\% \to 11.8\%\)</span>，容量 <span class="arithmatex">\(0.50\)</span>–<span class="arithmatex">\(0.67\times\)</span>。这里连抵消都算不上——回收的 prefill 工作量太少，而亲和性引入的倾斜是实打实的，净效果是亏损。</p>
+<p><strong>统一的解释</strong>：路由策略同时改变两个量。</p>
+<div class="arithmatex">\[\text{容量} \sim \frac{\text{单机吞吐}}{\text{不均衡度}}, \qquad \text{单机吞吐} \propto \frac{1}{\text{每请求工作量}}\]</div>
+<p>亲和性降低分子里的每请求工作量（提升命中率），同时抬高分母里的不均衡度。<strong>只有当前者的相对改善大于后者的相对恶化时，容量才提升。</strong> 可回收 prefill 的绝对量决定了前者的上限——本文负载中它是 prompt 的 15%，32B 负载 A 中它接近于零。</p>
+<p><strong>工程结论</strong>：把 KV 命中率当作优化目标是错的，它只是一个中间量。论文的部署门禁把这一点写成了硬规则——「A cache-hit increase is not enough; the plan is enabled only when p99 or capacity improves」。</p>
+<h3 id="q8-解析式缓存驻留模型为什么失败这对我意味着什么">Q8: 解析式缓存驻留模型为什么失败？这对我意味着什么？<a class="headerlink" href="#q8-解析式缓存驻留模型为什么失败这对我意味着什么" title="Permanent link">🔗</a></h3>
+<p><strong>A</strong>:</p>
+<p><strong>论文做了什么</strong>：针对 70B fp8 引擎测试了一个<strong>单特征时间（single-characteristic-time）占用模型</strong>——即假设缓存驻留时间可以用一个特征时标来刻画，命中率是重访间隔与该时标之比的函数。这类模型在 CDN 与 CPU 缓存分析中很常见（Che 近似及其变体）。</p>
+<p><strong>做得有多认真</strong>：组件级插桩通过了<strong>七项隔离检查</strong>，每个 TP2 destination 暴露了 <strong>40,071 个实测 KV block</strong>（约 641K token）。也就是说，失败不能归因于测量不准。</p>
+<p><strong>失败到什么程度</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>分位</th>
+<th>预测偏差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中位数</td>
+<td><strong>14.3 个百分点</strong></td>
+</tr>
+<tr>
+<td>p90</td>
+<td><strong>44.7 个百分点</strong></td>
+</tr>
+</tbody>
+</table>
+<p>在一个命中率取值范围本身就是 0–100% 的量上，p90 处偏 44.7 个点意味着预测<strong>没有任何决策价值</strong>。</p>
+<p><strong>为什么失败</strong>：论文的观察是——真实曲线「先急剧下降，然后进入平台」，这个形状<strong>落在被测模型族之外</strong>。论文在这里停住了，明确拒绝在没有直接证据的情况下把这个形状归因于某个引擎机制。</p>
+<p><strong>我的推测</strong>（标注为推断）：这个形状与本文负载的构成高度吻合。prompt 由三部分组成——全局模板（所有业务共享，在每台机器上永远是热的）、检索 few-shot 块（67% 的相邻请求对之间就变了，几乎永远不命中）、每业务上下文（约 15%，是唯一受路由影响的部分）。三者的驻留特征完全不同，<strong>混合体的命中率曲线自然不是单特征时间模型能描述的</strong>。平台区大概率对应「全局模板始终命中」这个下界。若这个推测成立，正确的建模方式是按 prefix 段分层，而不是给整体拟合一个特征时间。</p>
+<p><strong>对我的意义</strong>（这是这条最有价值的部分）：</p>
+<ol>
+<li><strong>不要用解析式缓存模型做 LLM serving 的容量规划。</strong> 这是一个带实测数据的反例，可以直接引用。</li>
+<li><strong>shadow replay 应该成为标准工具</strong>。它绕过了「预测缓存行为」这个难题，直接测量。代价是需要一份影子流量和一次额外的运行窗口。</li>
+<li><strong>一个更一般的教训</strong>：当模型误差的分布<strong>右尾极长</strong>（中位数 14.3 点、p90 44.7 点）时，问题通常出在模型族的选择上，而不是参数拟合。继续调参不会有帮助。</li>
+</ol>
+<hr />
+<h2 id="5-可迁移的知识点">5. 可迁移的知识点<a class="headerlink" href="#5-可迁移的知识点" title="Permanent link">🔗</a></h2>
+<ul>
+<li><a href="../../../concepts/kv-cache/">KV Cache</a> —— 本文的全部优化对象。routing 决定请求落到哪台机器，从而决定能否复用那台机器上已有的 KV。</li>
+<li><a href="../../../concepts/prefix-caching/">Prefix Caching</a> —— 本文指出它的隐含前提：只有请求回到<strong>仍持有该 prefix 的那台机器</strong>时才生效，而这一点由路由而非缓存决定。</li>
+<li><a href="../../../concepts/cache-affinity-vs-load-balance/">缓存亲和性与负载均衡的取舍</a> —— 本文把这个取舍量化成「可回收命中率增量 vs 残留负载倾斜」，并给出了三个实测运行区间（win / lose / tie）。</li>
+<li><a href="../../../concepts/slo-capacity/">SLO 容量与 p99 尾延迟</a> —— 本文的评价指标定义（含右删失、配对种子、失败率上限）是这类实验的一个好范本。</li>
+</ul>
+<hr />
+<h2 id="6-批判与开放问题">6. 批判与开放问题<a class="headerlink" href="#6-批判与开放问题" title="Permanent link">🔗</a></h2>
+<h3 id="61-局限性">6.1 局限性<a class="headerlink" href="#61-局限性" title="Permanent link">🔗</a></h3>
+<p><strong>作者自己承认的</strong>（§6 写得相当完整）：</p>
+<ul>
+<li>等槽位准入假设 prefix 尺寸大致均匀，不适用于异质长上下文；未测量按字节的价值函数，不主张 byte-knapsack 或最优准入。</li>
+<li>冷尾流量共享原生缓存，<strong>可以驱逐已准入的 prefix</strong>——计划对驻留没有任何保证。</li>
+<li>聚合 replay 不保留精确的每 key 时间戳。</li>
+<li>两个分布无法代表所有市场或应用。</li>
+<li>Preble / DualMap / CHWBL 是共同 harness 下的重实现，不复现原系统。</li>
+<li>若干 8B 拐点在 500 QPS 处右删失；3 种子研究的置信区间偏宽。</li>
+<li>churn-aware replanner 未实现。</li>
+<li>解析式驻留预测失败（§5.4）。</li>
+</ul>
+<p><strong>论文没提但存在的</strong>：</p>
+<ul>
+<li><strong>控制周期长度从未给出具体值</strong>。§3.2 只说「fixed for a control interval」，§5.4 用「六个周期」作时间轴。这个参数直接决定过时代价与换表频率的平衡，缺失使方法难以复现。</li>
+<li><strong>速率估计方法未展开</strong>。<span class="arithmatex">\(\{\lambda_b\}\)</span> 是 Algorithm 1 的输入，但估计窗口、平滑方式、新 key 的冷启动处理都没有描述。考虑到每 key 到达间隔的 CV 中位数是 1.93（相当突发），速率估计器的设计对结果的影响可能不小。</li>
+<li><strong>offered-load 阶梯粒度粗</strong>。阶梯点是 30 / 60 / 80 / 100 / 120 / 140 / 160 / 180，因此「<span class="arithmatex">\(176 \pm 11\)</span> QPS」这个均值的真实分辨率受限于阶梯本身，而不是测量精度。<span class="arithmatex">\(2.3\times\)</span> 这个比值同样继承了这个粒度。</li>
+<li><strong><span class="arithmatex">\(q_{\mathrm{cap}}\)</span> 的标定方法只有一句话</strong>（「from a single destination's latency/load knee」）。这个参数直接决定 <span class="arithmatex">\(k_b\)</span>，进而决定槽位消耗与准入数量，敏感性分析缺失。</li>
+<li><strong>只报告 p99，没有 p50 / p999</strong>。TTFT 的 p99 是主指标，但对话场景的用户体验同时依赖 TPOT（time per output token），论文完全没有涉及 decode 阶段的延迟。</li>
+</ul>
+<h3 id="62-我的质疑">6.2 我的质疑<a class="headerlink" href="#62-我的质疑" title="Permanent link">🔗</a></h3>
+<ul>
+<li><strong>标题与主实验的机制不完全对应。</strong> 标题是「Planned Prefix-Affinity Routing」，而主分布下 <span class="arithmatex">\(k_b \equiv 1\)</span>，Algorithm 1 退化成「top-rate 准入 + 单副本 LPT 放置」。作者对此非常坦率（三处声明），但这意味着<strong>论文最强的数字（<span class="arithmatex">\(2.3\times\)</span>）验证的是一个比标题所述更简单的机制</strong>，完整机制只在 8B 合成负载上被触发过一次。</li>
+<li><strong>基线的实现质量无法验证，而这决定了核心比值。</strong> <span class="arithmatex">\(2.3\times\)</span> 是相对 Preble 的重实现算出来的。论文诚实地声明了这一点，但 Preble 在自己的论文中报告的效果与这里的 <span class="arithmatex">\(76 \pm 11\)</span> QPS 是否可比，读者无从判断。CHWBL 的 <span class="arithmatex">\(\epsilon = 0.25\)</span> 由离线扫描选定，Preble 的 load-cap 因子取 1.5——<strong>后者没有说明是否也做过扫描</strong>。若 1.5 是取自原论文的默认值而未针对本负载调优，比较就不完全公平。</li>
+<li><strong>「<span class="arithmatex">\(4.2\times\)</span> Flat-LB」这个数字的分母不稳定。</strong> Flat-LB 的 Cap@3.5s 是 <span class="arithmatex">\(42 \pm 20\)</span>，相对误差接近 50%。用它做分母得到的 <span class="arithmatex">\(4.2\times\)</span> 应当被理解为一个数量级指示，而不是一个可引用的精确倍数。论文在正文中并列使用了 <span class="arithmatex">\(2.3\times\)</span> 和 <span class="arithmatex">\(4.2\times\)</span>，没有区分两者的证据强度。</li>
+<li><strong>规划器的不稳定性被观察到但没有被追究。</strong> 「94.5% 的 key 被重映射，而只有 1.1% 改变了副本数」是一个很强的信号：LPT 的输出几乎完全由 <span class="arithmatex">\(L[r]\)</span> 上的微小差异决定。论文把它作为「不要频繁换表」的论据，但一个更自然的读法是<strong>贪心放置本身选错了</strong>——带切换代价的重优化（例如在目标里加入与上一版计划的差异惩罚）应当是这个问题的正解，而不是靠运维规则回避。</li>
+<li><strong>成功与失败的判别条件仍然是事后的。</strong> §5.3 给了三个运行区间，也给出了「可回收命中率增量 vs 残留倾斜」这个定性判据，但没有给出<strong>上线前可计算的</strong>判据。最终的答案是「跑一次 shadow replay」。这对运维是诚实且可操作的，对方法本身则意味着它缺少一个预测模型——而 §5.4 恰好证明了作者尝试过并失败了。这是全文最大的开放问题。</li>
+</ul>
+<h3 id="63-后续可读">6.3 后续可读<a class="headerlink" href="#63-后续可读" title="Permanent link">🔗</a></h3>
+<ul>
+<li><strong>vLLM / PagedAttention</strong> —— CacheRoute 依赖的引擎侧底座，理解 KV block 与驱逐策略。</li>
+<li><strong>SGLang / RadixAttention</strong> —— 单机内 prefix 复用的代表实现，与本文的跨机路由互补。</li>
+<li><strong>Preble、DualMap</strong> —— 本文最主要的两个对比对象，读原文以判断重实现的公平性。</li>
+<li><strong>CHWBL（Consistent Hashing with Bounded Loads）</strong> —— 本文中表现最稳的经典基线，理论保证清晰。</li>
+<li><strong>Mooncake / MemServe</strong> —— 把 KV 池化或迁移，与「靠入口亲和性保住 KV」是两条相反的技术路线，值得对照阅读。</li>
+<li><strong>DistServe / Splitwise</strong> —— PD 分离；论文指出它们与入口计划可组合，这个组合点尚无人做过。</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      笔记内容为个人学习记录；论文原文版权归原作者所有
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.sections", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.tooltips"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../javascripts/katex.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/contrib/auto-render.min.js"></script>
+      
+    
+  </body>
+</html>
