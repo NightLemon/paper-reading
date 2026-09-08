@@ -476,6 +476,7 @@ $$lrate = d_{\text{model}}^{-0.5} \cdot \min\!\left(step^{-0.5},\; step \cdot wa
 
 - **FlashAttention** —— 直接针对 Table 1 未覆盖的显存维度，IO-aware 的精确注意力。
 - **BERT / GPT 系列** —— 本文的 encoder 与 decoder 各自独立发展出的两条分支。
-- **RoPE / ALiBi** —— 沿 §3.5「相对位置 + 长度外推」这条未验证的线索继续推进。
+- **[Speculative Decoding](../../llm-serving/2023-speculative-decoding/README.md)** —— 承接 §7 的“making generation less sequential”：用草稿与并行验证减少目标模型串行调用，严格随机版本保持目标采样分布。
+- **[RoFormer / RoPE](../2021-roformer/README.md) / ALiBi** —— 沿 §3.5 的位置关系线索继续推进。RoPE 给出内积显式依赖相对位置的旋转构造，长度外推能力仍需独立实验验证。
 - **Pre-LN 相关工作** —— 解释并消除本文 §5.3 warmup 的必要性。
 - **vLLM / PagedAttention** —— 把 Q4 中指出的「$K$、$V$ 对已生成前缀不变」这一性质工程化为 KV Cache 的分页管理。

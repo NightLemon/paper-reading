@@ -2,7 +2,7 @@
 concept: "Self-Attention"
 aliases: ["自注意力", "intra-attention", "Scaled Dot-Product Attention"]
 tags: ["transformer", "attention", "sequence-modeling"]
-papers: ["topics/foundations/2017-attention-is-all-you-need"]
+papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/foundations/2021-roformer", "topics/llm-serving/2023-speculative-decoding"]
 ---
 
 # Self-Attention
@@ -67,6 +67,10 @@ $$\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\
 自回归解码时，位置 $j$ 的 $K_j$、$V_j$ 只依赖位置 $\le j$ 的输入。新生成的 token 不会改变已有位置的 $K$、$V$，因此可以缓存复用——这是 **KV Cache** 的全部依据，也是 prefix caching、prefix 亲和路由等一系列 serving 优化的前提。
 
 ## 出现在哪些论文里
+
+- [Speculative Decoding](../topics/llm-serving/2023-speculative-decoding/README.md) —— 用小模型草稿与目标模型并行验证，在保持目标分布的条件下减少串行目标模型调用。
+
+- [RoFormer / RoPE](../topics/foundations/2021-roformer/README.md) —— 对 Q/K 施加位置相关旋转，使注意力内积的位置项依赖相对距离。
 
 - [Attention Is All You Need](../topics/foundations/2017-attention-is-all-you-need/README.md) —— 提出 scaled dot-product 形式，并首次把 self-attention 作为唯一的序列建模原语（不再依附于 RNN）。
 

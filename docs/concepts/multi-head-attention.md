@@ -2,7 +2,7 @@
 concept: "Multi-Head Attention"
 aliases: ["多头注意力", "MHA"]
 tags: ["transformer", "attention"]
-papers: ["topics/foundations/2017-attention-is-all-you-need"]
+papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/foundations/2023-gqa"]
 ---
 
 # Multi-Head Attention
@@ -45,13 +45,15 @@ $$\mathrm{head}_i = \mathrm{Attention}(QW_i^Q,\; KW_i^K,\; VW_i^V)$$
 
 ## 与推理优化的关系
 
-KV Cache 的体积正比于 $\text{layers} \times h \times d_k \times \text{seq\_len} \times 2$。头数直接决定了缓存占用，因此后续出现了 **MQA**（所有 query 头共享一组 K/V）与 **GQA**（分组共享）来压缩这一项。这类变体改变的是 K/V 的头数而非 query 的头数，属于对本概念的直接改造。
+KV Cache 的逻辑体积正比于 $\text{layers} \times H_{kv} \times d_k \times \text{seq\_len} \times 2$，再乘每元素字节数。MHA 中 $H_{kv}=H_q$；[MQA / GQA](grouped-query-attention.md) 在保持 query 头数和每头维度的同时减小 $H_{kv}$，因此能压缩缓存。若只在固定模型宽度下改变 MHA 的头数，$h\cdot d_k$ 可能保持不变，不能仅凭“头数减少”推导缓存变小。详见 [GQA 精读](../topics/foundations/2023-gqa/README.md)。
 
 ## 出现在哪些论文里
+
+- [GQA](../topics/foundations/2023-gqa/README.md) —— 分组共享 K/V，并将既有 MHA checkpoint 转换后继续训练，平衡质量与推理成本。
 
 - [Attention Is All You Need](../topics/foundations/2017-attention-is-all-you-need/README.md) —— 提出 multi-head 结构；给出两处动机（抵消平均导致的分辨率损失、关注不同表示子空间）；消融显示单头比最佳设置差 0.9 BLEU，头数过多同样掉点。
 
 ## 延伸阅读
 
-- MQA / GQA：压缩 K/V 头数以缩小 KV Cache。
+- [MQA / GQA](grouped-query-attention.md)：压缩 K/V 头数以缩小 KV Cache；共享方式、checkpoint 转换与适应训练见 [GQA 精读](../topics/foundations/2023-gqa/README.md)。
 - 注意力头剪枝相关研究：检验「不同头功能互补」这一论断的定量证据。

@@ -8,7 +8,7 @@ arxiv: "2401.09670"
 url: "https://arxiv.org/abs/2401.09670"
 topic: "llm-serving"
 tags: ["prefill-decode-disaggregation", "goodput", "ttft", "tpot", "parallelism", "osdi"]
-concepts: ["prefill-decode-disaggregation", "slo-capacity", "kv-cache", "tensor-parallelism"]
+concepts: ["prefill-decode-disaggregation", "slo-capacity", "kv-cache", "tensor-parallelism", "chunked-prefill"]
 status: "done"
 rating: 5
 read_date: "2026-09-02"
@@ -555,6 +555,8 @@ $$1.13\,\text{GB} \times 10/\text{s} = 11.3\,\text{GB/s} \approx 90\,\text{Gbps}
 
 ## 5. 可迁移的知识点
 
+- [Chunked Prefill](../../../concepts/chunked-prefill.md) —— 本文讨论的同实例调度路线；分块控制干扰，阶段分离提供独立配置资源的自由度。
+
 - [Prefill / Decode 分离](../../../concepts/prefill-decode-disaggregation.md) —— 本文是这一架构最系统的论证与实现。
 - [SLO 容量与 p99 尾延迟](../../../concepts/slo-capacity.md) —— 本文把 goodput 定义为「per-GPU 的、在 SLO 达成率约束下的最大请求率」，并给出 TTFT / TPOT 双指标体系。
 - [KV Cache](../../../concepts/kv-cache.md) —— 本文让 KV 第一次成为需要**跨机传输**的对象，并给出了传输量的估算方法。
@@ -592,7 +594,8 @@ $$1.13\,\text{GB} \times 10/\text{s} = 11.3\,\text{GB/s} \approx 90\,\text{Gbps}
 ### 6.3 后续可读
 
 - **Splitwise**（ISCA'24）—— 并行工作，同样做 PD 分离，可对照两者的取舍差异。
-- **Sarathi-Serve**（OSDI'24）—— chunked-prefill 的代表，是本文批评的主要对象，读原文以判断批评是否公允。
+- **[SARATHI（2023）](https://arxiv.org/abs/2308.16369)** —— DistServe 原文参考文献 [9] 实际引用的前作，讨论 chunked-prefill 与 decode piggybacking。
+- **[Sarathi-Serve（OSDI'24）](../2024-sarathi-serve/README.md)** —— 后继工作进一步提出 stall-free batching、token budget 与流水优化。可对照同实例分块和 PD 分离的取舍；Sarathi-Serve §6 将与分离方案的定量比较留作未来工作。
 - **Mooncake**（FAST'25）—— 把 KV 做成独立存储层，与本文「KV 在实例间点对点传输」是两种不同的解耦方式。
 - **[CacheRoute](../2026-cacheroute/README.md)** —— 本仓库已有笔记；与本文的组合（prefix 亲和路由 + PD 分离）是 Q8 里指出的开放问题。
 - **AlpaServe**（OSDI'23）—— 本文引用的 goodput 优化前作，面向非自回归生成。

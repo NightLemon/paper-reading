@@ -4,6 +4,8 @@
 
 **用法**：把想读的那行 `[ ]` 改成 `[x]`，然后说「精读 XXX」，我会拉原文、建目录、写完整报告。也可以直接说「按路径继续」，我从当前阶段的第一篇未读论文开始。
 
+**当前进度（2026-09-08）**：阶段 1–2 已全部精读；阶段 3 已补入 **ZeRO** 与 **GPipe / PipeDream 对比精读**，接下来是 **序列并行 / Ring Attention**。
+
 **影响力标注**：
 `⭐⭐⭐` 领域奠基，不读会有知识断层 · `⭐⭐` 高影响力，业界广泛引用/落地 · `⭐` 值得一读，视兴趣取舍
 
@@ -23,7 +25,7 @@
 
 ---
 
-## 阶段 1 · 推理系统主线（当前阶段，建议按顺序）
+## 阶段 1 · 推理系统主线（已完成）
 
 读完这一阶段，你能看懂几乎所有 LLM serving 相关的技术讨论与招聘要求。
 
@@ -37,23 +39,23 @@
 
 - [x] ⭐⭐ **Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving** — FAST'25 · [arXiv:2407.00079](https://arxiv.org/abs/2407.00079) · ✅ **已精读** · [笔记](topics/llm-serving/2025-mooncake/README.md)
 
-- [ ] ⭐ **Sarathi-Serve: Taming Throughput-Latency Tradeoff with Chunked Prefills** — OSDI'24 · [arXiv:2403.02310](https://arxiv.org/abs/2403.02310)
+- [x] ⭐ **Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve** — OSDI'24 · [arXiv:2403.02310](https://arxiv.org/abs/2403.02310) · ✅ **已精读** · [笔记](topics/llm-serving/2024-sarathi-serve/README.md)
       *为什么读*：解决 continuous batching 里「长 prompt 的 prefill 打断 decode 造成延迟毛刺」这个具体问题。工程味浓，适合在读完 Orca 之后作为补充。
 
 ---
 
 ## 阶段 2 · 模型侧的效率优化
 
-这一阶段的论文都直接影响推理成本，概念简单、篇幅短，适合穿插在阶段 1 之间读。
+✅ **已完成**。这一阶段补充 KV 共享、旋转位置编码与投机解码；各篇分别解释成本、数学性质和实验适用范围。
 
-- [ ] ⭐⭐ **GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints** — EMNLP'23 · [arXiv:2305.13245](https://arxiv.org/abs/2305.13245)
-      *为什么读*：[Multi-Head Attention](concepts/multi-head-attention.md) 提到 KV Cache 大小正比于 $h \cdot d_k$，GQA/MQA 就是压这一项的标准做法。今天几乎所有开源模型都用 GQA。篇幅很短。
+- [x] ⭐⭐ **GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints** — EMNLP'23 · [arXiv:2305.13245](https://arxiv.org/abs/2305.13245) · ✅ **已精读** · [笔记](topics/foundations/2023-gqa/README.md)
+      *为什么读*：在保持 query 头数和每头维度时，GQA/MQA 通过共享 K/V 压缩 [KV Cache](concepts/kv-cache.md)。精读同时解释 MHA checkpoint 转换、uptraining 与组数的质量–速度取舍。
 
-- [ ] ⭐⭐ **RoFormer: Enhanced Transformer with Rotary Position Embedding（RoPE）** · [arXiv:2104.09864](https://arxiv.org/abs/2104.09864)
-      *为什么读*：Transformer 笔记 Q3 指出正弦编码「可外推」这个论断从未被验证，RoPE 是沿这条线的主流答案，今天几乎所有主流模型都在用。
+- [x] ⭐⭐ **RoFormer: Enhanced Transformer with Rotary Position Embedding（RoPE）** · [arXiv:2104.09864](https://arxiv.org/abs/2104.09864) · ✅ **已精读** · [笔记](topics/foundations/2021-roformer/README.md)
+      *为什么读*：承接 Transformer 笔记的位置编码问题，从二维旋转推导相对位置关系，并区分位置函数可计算、距离衰减与超训练长度的实际质量。
 
-- [ ] ⭐ **Fast Inference from Transformers via Speculative Decoding** — ICML'23 · [arXiv:2211.17192](https://arxiv.org/abs/2211.17192)
-      *为什么读*：直接攻 Transformer 论文 §7 那条至今未解的展望——「making generation less sequential」。用小模型草稿 + 大模型验证打破自回归的顺序依赖。
+- [x] ⭐ **Fast Inference from Transformers via Speculative Decoding** — ICML'23 · [arXiv:2211.17192](https://arxiv.org/abs/2211.17192) · ✅ **已精读** · [笔记](topics/llm-serving/2023-speculative-decoding/README.md)
+      *为什么读*：承接 Transformer §7 的“making generation less sequential”。用小模型草稿与并行验证减少目标模型串行调用，精读接受概率、残差修正和保持目标分布的条件。
 
 ---
 
@@ -63,11 +65,11 @@
 
 - [x] ⭐⭐⭐ **Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism** · [arXiv:1909.08053](https://arxiv.org/abs/1909.08053) · ✅ **已精读** · [笔记](topics/llm-training/2019-megatron-lm/README.md)
 
-- [ ] ⭐⭐⭐ **ZeRO: Memory Optimizations Toward Training Trillion Parameter Models** — SC'20 · [arXiv:1910.02054](https://arxiv.org/abs/1910.02054)
+- [x] ⭐⭐⭐ **ZeRO: Memory Optimizations Toward Training Trillion Parameter Models** — SC'20 · [arXiv:1910.02054](https://arxiv.org/abs/1910.02054) · ✅ **已精读** · [笔记](topics/llm-training/2020-zero/README.md)
       *为什么读*：训练侧的显存优化范式，与 vLLM 在推理侧做的事精神一致——都是「显存是瓶颈，靠切分与按需分配解决」。DeepSpeed 的核心。
 
-- [ ] ⭐⭐ **GPipe / PipeDream** — 流水并行的两种气泡处理思路 · [GPipe arXiv:1811.06965](https://arxiv.org/abs/1811.06965)
-      *为什么读*：建议合并成一篇对比笔记。三种并行（数据 / 张量 / 流水）凑齐后，就能读懂任何一篇大模型训练报告里的并行配置。
+- [x] ⭐⭐ **GPipe / PipeDream** — 流水调度与更新语义的两种取舍 · [GPipe arXiv:1811.06965](https://arxiv.org/abs/1811.06965) · [PipeDream SOSP'19](https://doi.org/10.1145/3341301.3359646) · ✅ **已精读** · [笔记](topics/llm-training/2019-gpipe-pipedream/README.md)
+      *为什么读*：已合并精读，分别按两篇原文章节分析同步微批、1F1B、weight stashing 和达到目标质量的时间；与 Megatron-LM、ZeRO 串起多维并行。
 
 - [ ] ⭐ **序列并行 / Ring Attention** — 长上下文训练的并行维度补充。
 
@@ -137,3 +139,9 @@
 | DistServe | LLM Serving | [笔记](topics/llm-serving/2024-distserve/README.md) | 2026-09-02 |
 | Mooncake | LLM Serving | [笔记](topics/llm-serving/2025-mooncake/README.md) | 2026-09-02 |
 | CacheRoute | LLM Serving | [笔记](topics/llm-serving/2026-cacheroute/README.md) | 2026-09-02 |
+| Sarathi-Serve | LLM Serving | [笔记](topics/llm-serving/2024-sarathi-serve/README.md) | 2026-09-08 |
+| GQA | Foundations | [笔记](topics/foundations/2023-gqa/README.md) | 2026-09-08 |
+| RoFormer / RoPE | Foundations | [笔记](topics/foundations/2021-roformer/README.md) | 2026-09-08 |
+| Speculative Decoding | LLM Serving | [笔记](topics/llm-serving/2023-speculative-decoding/README.md) | 2026-09-08 |
+| ZeRO | LLM Training | [笔记](topics/llm-training/2020-zero/README.md) | 2026-09-08 |
+| GPipe / PipeDream | LLM Training | [笔记](topics/llm-training/2019-gpipe-pipedream/README.md) | 2026-09-08 |

@@ -2,7 +2,7 @@
 concept: "Prefill / Decode 分离"
 aliases: ["PD Disaggregation", "prefill-decoding disaggregation", "PD 分离", "阶段分离"]
 tags: ["llm-serving", "architecture", "scheduling", "slo"]
-papers: ["topics/llm-serving/2024-distserve", "topics/llm-serving/2025-mooncake"]
+papers: ["topics/llm-serving/2024-distserve", "topics/llm-serving/2025-mooncake", "topics/llm-serving/2024-sarathi-serve"]
 ---
 
 # Prefill / Decode 分离
@@ -94,6 +94,8 @@ KV Cache 必须从 prefill 侧传到 decode 侧，这是分离引入的唯一新
 - **误解**：分离后可靠性不变 → **实际**：两类实例之间产生了依赖，故障会沿依赖传播，可靠性相对「colocate + 副本」是**下降**的。
 
 ## 出现在哪些论文里
+
+- [Sarathi-Serve](../topics/llm-serving/2024-sarathi-serve/README.md) —— 将 prefill 分块，用每轮 token 预算控制 decode 干扰并减少流水批次不均。
 
 - [DistServe](../topics/llm-serving/2024-distserve/README.md) —— 系统论证了分离的必要性（干扰 + 资源耦合），用排队论给出并行策略判据，用模拟器搜索最优 placement，并给出「同 stage 同节点」的放置约束把 KV 传输压进 NVLINK。
 - [Mooncake（FAST'25）](../topics/llm-serving/2025-mooncake/README.md) —— 生产环境的分离实践，补上了两个新问题：长上下文下的跨节点 prefill（分块流水并行 CPP），以及过载下由「两次决策相隔一段时间」引发的 **prefill / decoding 负载反相震荡**。

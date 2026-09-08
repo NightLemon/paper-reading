@@ -556,7 +556,7 @@ Transformer 里的 dropout 分两处：**模型并行区域之外**（残差连�
 
 - **Efficient Large-Scale Language Model Training on GPU Clusters（Megatron-LM 第二篇，SC'21）** —— 直接回应本文 §6 的预测：张量+流水+数据 3D 并行，并给出了流水气泡的解析模型。
 - **Reducing Activation Recomputation in Large Transformer Models（2022）** —— sequence parallelism 的出处，回收本文「复制计算」策略留下的激活显存。
-- **ZeRO / DeepSpeed** —— 从优化器状态切分的角度解决显存问题，与张量并行正交，正好对应本文 §6 提到的「优化器显存需要改进」。
-- **GPipe（NeurIPS'19）** —— 本文在 §2.3 定性批评但从未实测对比的流水并行方案。
+- **[ZeRO / DeepSpeed](../2020-zero/README.md)** —— 从优化器、梯度与参数的状态分片处理显存问题；精读区分原论文的 ZeRO-100B 实测、完整参数分片分析与万亿参数容量预测。
+- **[GPipe / PipeDream 对比精读](../2019-gpipe-pipedream/README.md)** —— GPipe 是本文在 §2.3 定性讨论的流水方案；对比笔记进一步区分微批调度、同步更新与 weight stashing 的版本语义。
 - **On Layer Normalization in the Transformer Architecture（ICML'20）** —— 系统性地回答了本文 §5.3 只给出经验观察的 pre-LN 为何更稳定。
 - **[vLLM 笔记](../../llm-serving/2023-vllm-pagedattention/README.md)** —— 推理侧复用了同一套张量并行（§4.6），可以对照看训练与推理对它的不同要求。

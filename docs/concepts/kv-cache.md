@@ -2,7 +2,7 @@
 concept: "KV Cache"
 aliases: ["KV 缓存", "Key-Value Cache"]
 tags: ["llm-serving", "inference", "memory"]
-papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/llm-serving/2026-cacheroute", "topics/llm-serving/2025-mooncake"]
+papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/llm-serving/2026-cacheroute", "topics/llm-serving/2025-mooncake", "topics/llm-serving/2024-sarathi-serve", "topics/foundations/2023-gqa", "topics/foundations/2021-roformer", "topics/llm-serving/2023-speculative-decoding"]
 ---
 
 # KV Cache
@@ -36,9 +36,15 @@ $$\text{KV bytes} = 2 \times L \times H_{kv} \times d_{\text{head}} \times n \ti
 
 ### 压缩这一项的常见手段
 
-- **MQA / GQA**：减小 $H_{kv}$（所有 query 头共享一组 K/V，或分组共享）。
+- **[MQA / GQA](grouped-query-attention.md)**：减小 $H_{kv}$（所有 query 头共享一组 K/V，或分组共享）；query 头数保持不变，转换已有 checkpoint 后需要评估适应训练与质量。
 - **量化**：把 KV 存成 fp8 / int8，减小 `bytes_per_elem`。
 - **分页管理（PagedAttention）**：把 KV 切成固定大小的 block，按需分配，消除为最大长度预留造成的内部碎片。
+
+### 位置配置与投机路径的一致性
+
+使用 [RoPE](rotary-position-embedding.md) 时，缓存的 key 通常已经按请求位置旋转。[Chunked Prefill](chunked-prefill.md) 应延续位置编号，缓存复用也需要匹配模型、前缀和旋转配置；函数在新位置可计算，并不保证旧上下文中的深层 KV 可以直接复用。
+
+[Speculative Decoding](speculative-decoding.md) 则引入尚未确认的候选状态。草稿与目标模型一般各有一套 KV；首个拒绝之后的后缀依赖错误路径，需要回退。已确认前缀可以保留，修正 token 的 KV 要在正确路径上补齐。以上是从位置与因果依赖得到的工程要求，相应精读中区分了原文结果与系统推论。
 
 ## 关键性质与代价
 
@@ -59,6 +65,14 @@ $$\text{KV bytes} = 2 \times L \times H_{kv} \times d_{\text{head}} \times n \ti
 
 ## 出现在哪些论文里
 
+- [Speculative Decoding](../topics/llm-serving/2023-speculative-decoding/README.md) —— 用小模型草稿与目标模型并行验证，在保持目标分布的条件下减少串行目标模型调用。
+
+- [RoFormer / RoPE](../topics/foundations/2021-roformer/README.md) —— 本笔记由旋转公式推导位置编号与缓存配置的一致性要求；RoFormer 原文未进行 KV serving 实验。
+
+- [GQA](../topics/foundations/2023-gqa/README.md) —— 分组共享 K/V，并将既有 MHA checkpoint 转换后继续训练，平衡质量与推理成本。
+
+- [Sarathi-Serve](../topics/llm-serving/2024-sarathi-serve/README.md) —— 将 prefill 分块，用每轮 token 预算控制 decode 干扰并减少流水批次不均。
+
 - [Attention Is All You Need](../topics/foundations/2017-attention-is-all-you-need/README.md) —— 未讨论推理优化，但其 decoder 的因果 mask 与自回归性质给出了 KV 可缓存的全部依据。
 - [vLLM / PagedAttention](../topics/llm-serving/2023-vllm-pagedattention/README.md) —— 把 KV Cache 从「实现细节」提升为「决定服务吞吐的一等资源」，并给出 800 KB/token 这类可直接复用的容量估算方法。
 - [CacheRoute](../topics/llm-serving/2026-cacheroute/README.md) —— 把「KV Cache 是有位置的状态」这一性质当作路由问题来处理：请求落在哪台机器决定了缓存能否被用上。
@@ -67,6 +81,6 @@ $$\text{KV bytes} = 2 \times L \times H_{kv} \times d_{\text{head}} \times n \ti
 ## 延伸阅读
 
 - [分页式 KV 管理](paged-kv-memory.md)：KV 的分页分配与共享。
-- MQA / GQA：压缩 K/V 头数。
+- [MQA / GQA](grouped-query-attention.md)：压缩 K/V 头数，逻辑容量与 TP 复制后的物理占用需要分别计算。
 - [Prefix Caching](prefix-caching.md)：跨请求复用 KV 的形式。
 - [KVCache 池化与分层存储](disaggregated-kv-store.md)：把 KV 提升为集群级共享资源。

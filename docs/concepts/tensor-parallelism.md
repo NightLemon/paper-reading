@@ -2,7 +2,7 @@
 concept: "张量并行"
 aliases: ["Tensor Parallelism", "TP", "模型并行", "Megatron-style parallelism"]
 tags: ["distributed-training", "parallelism", "llm-training"]
-papers: ["topics/llm-training/2019-megatron-lm", "topics/llm-serving/2023-vllm-pagedattention"]
+papers: ["topics/llm-training/2019-megatron-lm", "topics/llm-serving/2023-vllm-pagedattention", "topics/llm-serving/2024-sarathi-serve", "topics/foundations/2023-gqa", "topics/llm-training/2020-zero", "topics/llm-training/2019-gpipe-pipedream"]
 ---
 
 # 张量并行
@@ -11,13 +11,13 @@ papers: ["topics/llm-training/2019-megatron-lm", "topics/llm-serving/2023-vllm-p
 
 ## 为什么需要它
 
-数据并行（把 minibatch 切给多个 worker）能提高吞吐，但有一个**根本限制：模型必须完整装进一个 worker**。当单层的权重就超过单卡显存时，无论加多少张卡都无济于事。
+传统复制式数据并行（把 minibatch 切给多个 worker）能提高吞吐，但每个 worker 仍保存完整训练状态。后来的 [ZeRO 状态分片](zero-state-sharding.md) 打破了长期完整复制的限制；计算某一层时，仍要容纳该计算单元的工作集。当单个算子的权重与工作集过大时，张量并行提供进一步的层内切分。
 
 绕开这个限制的办法各有代价：
 
 - **参数共享**能省显存，但**限制了模型的总容量**；
-- **激活检查点**只省激活，不省参数；
-- **流水并行**（切层）能装下整个模型，但**单层仍必须装进一张卡**，且引入流水气泡；
+- **[激活检查点](activation-checkpointing.md)**主要减少保存的激活，参数相关状态仍需单独处理；
+- **[流水并行](pipeline-parallelism.md)**（切层）能分摊整个模型，但原始纯层间方案仍要求单层可在设备上执行，且需要处理气泡与更新语义；
 - **张量并行**（切算子内部）——本页的主题，它让「单层装不下」这个问题本身消失。
 
 三者解决的是不同层次的问题，不是替代关系。
@@ -160,6 +160,14 @@ graph LR
 - **误解**：并行度可以任意设 → **实际**：受注意力头数限制（不能超过头数，最好整除）。今天的 GQA/MQA 让 KV 头数远少于 Q 头数，给切分带来了新的约束——KV 头不够切时只能复制或改用别的切法。
 
 ## 出现在哪些论文里
+
+- [GPipe / PipeDream](../topics/llm-training/2019-gpipe-pipedream/README.md) —— 对照按 minibatch 排空后同步更新与跨 minibatch 流水，解释气泡、激活占用和权重版本语义。
+
+- [ZeRO](../topics/llm-training/2020-zero/README.md) —— 在数据并行组内逐级分片训练状态，再处理激活、缓冲和碎片，扩大可运行模型与 batch。
+
+- [GQA](../topics/foundations/2023-gqa/README.md) —— 分组共享 K/V，并将既有 MHA checkpoint 转换后继续训练，平衡质量与推理成本。
+
+- [Sarathi-Serve](../topics/llm-serving/2024-sarathi-serve/README.md) —— 将 prefill 分块，用每轮 token 预算控制 decode 干扰并减少流水批次不均。
 
 - [Megatron-LM（arXiv 2019）](../topics/llm-training/2019-megatron-lm/README.md) —— **出处**。本页的机制细节均来自该文：MLP 的列切→行切组合、注意力按头切分、$f$/$g$ 共轭算子、LayerNorm 复制计算、embedding 与交叉熵融合。实验条件：GPT-2、512 张 Tesla V100 SXM3 32GB（32 台 DGX-2H，机内 NVSwitch 300 GB/s、机间 InfiniBand 100 GB/s），混合精度。结果：8.3B 模型用 8 路张量并行达到线性扩展的 **77%**；配合 64 路数据并行用满 512 卡时为 **74%**，全应用维持 **15.1 PetaFLOPs**。
     - 界定收益边界的两组数字同样重要：**强扩展**（固定 1.2B、固定 batch size 8）下 2 卡 1.64×、4 卡 2.34×、8 卡仅 **2.98×**，作者归因于「单卡计算量下降后访存带宽与通信开销开始主导」；**头数影响效率**——8.3B/8 路并行下头数 16→24→32 时效率 82%→80%→**77%**。

@@ -2,7 +2,7 @@
 concept: "Continuous Batching"
 aliases: ["连续批处理", "iteration-level scheduling", "in-flight batching", "动态批处理"]
 tags: ["llm-serving", "scheduling", "batching"]
-papers: ["topics/llm-serving/2022-orca", "topics/llm-serving/2023-vllm-pagedattention"]
+papers: ["topics/llm-serving/2022-orca", "topics/llm-serving/2023-vllm-pagedattention", "topics/llm-serving/2024-sarathi-serve", "topics/llm-serving/2023-speculative-decoding"]
 ---
 
 # Continuous Batching
@@ -125,13 +125,17 @@ papers: ["topics/llm-serving/2022-orca", "topics/llm-serving/2023-vllm-pagedatte
 
 ## 出现在哪些论文里
 
+- [Speculative Decoding](../topics/llm-serving/2023-speculative-decoding/README.md) —— 本仓库的延伸比较：请求间 batching 与同请求的多候选验证共享硬件资源，组合时要重新评估每轮工作量和临时 KV。该论文墙钟实验使用 batch size 1，未评测高并发 continuous batching 容量。
+
+- [Sarathi-Serve](../topics/llm-serving/2024-sarathi-serve/README.md) —— 将 prefill 分块，用每轮 token 预算控制 decode 干扰并减少流水批次不均。
+
 - [Orca（OSDI'22）](../topics/llm-serving/2022-orca/README.md) —— **出处**。提出 iteration-level scheduling 与 selective batching，本页的机制细节均来自该文。实验条件：GPT-3 175B、16 张 A100 40GB（Azure ND96asr A100 v4，NVLink + 1.6Tb/s InfiniBand）、fp16、输入长度 $U(32,512)$、生成长度 $U(1,128)$、Poisson 到达、基线为 NVIDIA FasterTransformer 加作者自实现的动态组批调度器。在中位归一化延迟 190 ms/token 处，FasterTransformer 吞吐 0.185 req/s，Orca 6.81 req/s，即 **36.9×**。
     - 补充两个界定收益边界的数字：**引擎微基准**（关掉调度器，13B/1 GPU 与 101B/8 GPU，批内请求输入 token 数相同、均生成 32 token）下 Orca 引擎相比 FasterTransformer **持平或略差**——说明端到端的巨大差距来自调度而非 kernel；**101B/8 GPU 低负载**是论文自陈的唯一例外，Orca 不占优。
 - [vLLM / PagedAttention（SOSP'23）](../topics/llm-serving/2023-vllm-pagedattention/README.md) —— 把它作为既有背景（明确注明出自 Orca），并说明 PagedAttention 与它是**互补**的：Orca 通过调度让更多请求并行，vLLM 通过提高显存利用率让更多请求装得下；细粒度调度反而让显存管理更困难，因此分页更关键。vLLM 量出已有系统（含 Orca 的按 `max_tokens` 预留）的 KV 有效利用率仅 20.4%–38.2%。
 
 ## 延伸阅读
 
-- Sarathi-Serve（OSDI'24）：chunked prefill，缓解 prefill 打断 decode 的问题。
+- [Sarathi-Serve（OSDI'24）](../topics/llm-serving/2024-sarathi-serve/README.md)：[Chunked Prefill](chunked-prefill.md) 与 token budget 共同约束单轮工作量，缓解长 prefill 带来的生成停顿。
 - DistServe / Splitwise：把 prefill 与 decode 分离到不同实例，从根本上回避混排取舍。
 - FastServe：抢占式调度，挑战严格 FCFS。
 - BatchMaker（EuroSys'18）：RNN 上的 cell 级细粒度批处理，是 Orca 的最相关前作。因为 RNN 的 cell 与位置无关而 Transformer 的 cell 与位置强相关（每个 token 下标要用不同的 KV），这套做法搬不到 Transformer 上。

@@ -2,7 +2,7 @@
 concept: "Positional Encoding"
 aliases: ["位置编码", "PE"]
 tags: ["transformer", "attention", "position"]
-papers: ["topics/foundations/2017-attention-is-all-you-need"]
+papers: ["topics/foundations/2017-attention-is-all-you-need", "topics/foundations/2021-roformer"]
 ---
 
 # Positional Encoding
@@ -33,7 +33,7 @@ $$PE_{(pos,\,2i)} = \sin\!\left(pos / 10000^{2i/d_{\text{model}}}\right), \qquad
 
 后续主流方向。不再给每个绝对位置一个向量，而是让注意力分数直接依赖 $i - j$：
 
-- **RoPE**：对 query 和 key 施加与位置相关的旋转，使内积自然只依赖相对位置。
+- **[RoPE](rotary-position-embedding.md)**：对 query 和 key 施加与位置相关的旋转，使内积中的显式位置项依赖相对距离；分数仍依赖内容。完整推导与实验边界见 [RoFormer 精读](../topics/foundations/2021-roformer/README.md)。
 - **ALiBi**：在注意力分数上直接加一个与距离成正比的线性惩罚，不引入任何参数。
 
 ## 关键性质与代价
@@ -42,7 +42,7 @@ $$PE_{(pos,\,2i)} = \sin\!\left(pos / 10000^{2i/d_{\text{model}}}\right), \qquad
 | --- | --- | --- | --- |
 | 正余弦（固定） | 0 | 函数有定义，但外推质量有限 | 训练质量与学习式基本相同 |
 | 学习式嵌入 | $L_{\max} \times d_{\text{model}}$ | 无定义 | 实现最简单 |
-| RoPE | 0 | 需配合插值 / 缩放才能扩展 | 当前主流 |
+| RoPE | 0（原始固定频率形式） | 函数有定义；超训练长度质量需验证，后续可用插值 / 缩放等方法适应 | 在每层 Q/K 上注入位置 |
 | ALiBi | 0 | 外推性质较好 | 引入了对远距离的固有衰减偏置 |
 
 ## 常见误解
@@ -53,9 +53,11 @@ $$PE_{(pos,\,2i)} = \sin\!\left(pos / 10000^{2i/d_{\text{model}}}\right), \qquad
 
 ## 出现在哪些论文里
 
+- [RoFormer / RoPE](../topics/foundations/2021-roformer/README.md) —— 对 Q/K 施加位置相关旋转，使注意力内积的位置项依赖相对距离。
+
 - [Attention Is All You Need](../topics/foundations/2017-attention-is-all-you-need/README.md) —— 提出正余弦绝对位置编码；消融显示与学习式嵌入结果几乎相同；选择正余弦的唯一理由「可外推到更长序列」在文中未做验证。
 
 ## 延伸阅读
 
-- RoFormer（RoPE）、ALiBi：相对位置的两条主流路线。
-- 位置插值 / NTK-aware scaling：在不重训的前提下扩展上下文长度。
+- [RoFormer（RoPE）](../topics/foundations/2021-roformer/README.md)、ALiBi：相对位置的两条路线；RoFormer 的中文实验已训练到长度 1536，不能将其 1024 长度结果写成零适应外推。
+- [位置插值](https://arxiv.org/abs/2306.15595) / NTK-aware scaling：后续改变位置映射或频率的扩展方法，是否需要适应训练及其效果应按各自来源验证。

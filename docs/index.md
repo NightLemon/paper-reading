@@ -13,15 +13,23 @@
 | [In Search of an Understandable Consensus Algorithm（Raft）](topics/distributed-systems/2014-raft/README.md) | Distributed Systems | 2014 | ATC'14 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [Attention Is All You Need](topics/foundations/2017-attention-is-all-you-need/README.md) | Foundations | 2017 | NeurIPS'17 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism](topics/llm-training/2019-megatron-lm/README.md) | LLM Training | 2019 | arXiv | ✅ 已完成 | ⭐⭐⭐⭐ |
+| [GPipe / PipeDream：流水并行的调度与更新语义（对比精读）](topics/llm-training/2019-gpipe-pipedream/README.md) | LLM Training | 2019 | NeurIPS'19 / SOSP'19 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
+| [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](topics/llm-training/2020-zero/README.md) | LLM Training | 2020 | SC'20 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
+| [RoFormer: Enhanced Transformer with Rotary Position Embedding](topics/foundations/2021-roformer/README.md) | Foundations | 2021 | arXiv | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [Orca: A Distributed Serving System for Transformer-Based Generative Models](topics/llm-serving/2022-orca/README.md) | LLM Serving | 2022 | OSDI'22 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](topics/foundations/2022-flashattention/README.md) | Foundations | 2022 | NeurIPS'22 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [Efficient Memory Management for LLM Serving with PagedAttention（vLLM）](topics/llm-serving/2023-vllm-pagedattention/README.md) | LLM Serving | 2023 | SOSP'23 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
+| [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](topics/foundations/2023-gqa/README.md) | Foundations | 2023 | EMNLP'23 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
+| [Fast Inference from Transformers via Speculative Decoding](topics/llm-serving/2023-speculative-decoding/README.md) | LLM Serving | 2023 | ICML'23 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [SGLang: Efficient Execution of Structured Language Model Programs（RadixAttention）](topics/llm-serving/2024-sglang-radixattention/README.md) | LLM Serving | 2024 | NeurIPS'24 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving](topics/llm-serving/2024-distserve/README.md) | LLM Serving | 2024 | OSDI'24 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
+| [Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve](topics/llm-serving/2024-sarathi-serve/README.md) | LLM Serving | 2024 | OSDI'24 | ✅ 已完成 | ⭐⭐⭐⭐⭐ |
 | [Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving](topics/llm-serving/2025-mooncake/README.md) | LLM Serving | 2025 | FAST'25 | ✅ 已完成 | ⭐⭐⭐⭐ |
 | [CacheRoute: Planned Prefix-Affinity Routing for Large-Scale LLM Serving](topics/llm-serving/2026-cacheroute/README.md) | LLM Serving | 2026 | arXiv | ✅ 已完成 | ⭐⭐⭐⭐ |
 
 状态图例：📥 待读 · 🚧 已拆成 GitHub Issue 待接单 · 📖 精读中 · ✅ 已完成
+
+篇数按精读笔记条目统计；GPipe / PipeDream 合并为一篇对比笔记，覆盖两篇论文。
 
 ---
 
@@ -29,9 +37,9 @@
 
 | 主题 | 说明 | 篇数 |
 | --- | --- | --- |
-| [foundations](topics/foundations/README.md) | 奠基性经典论文 | 2 |
-| [llm-serving](topics/llm-serving/README.md) | LLM 推理服务、调度、KV Cache、请求路由 | 6 |
-| [llm-training](topics/llm-training/README.md) | 训练系统与并行策略 | 1 |
+| [foundations](topics/foundations/README.md) | 奠基性经典论文 | 4 |
+| [llm-serving](topics/llm-serving/README.md) | LLM 推理服务、调度、KV Cache、请求路由 | 8 |
+| [llm-training](topics/llm-training/README.md) | 训练系统与并行策略 | 3 |
 | [distributed-systems](topics/distributed-systems/README.md) | 分布式系统与共识 | 1 |
 | [networking](topics/networking/README.md) | 网络、RDMA、集合通信 | 0 |
 | [llm-applications](topics/llm-applications/README.md) | Agent、RAG 等应用架构 | 0 |

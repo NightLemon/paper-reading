@@ -472,7 +472,7 @@ Orca 真正新的东西有两条：
 ### 6.4 后续可读
 
 - **vLLM / PagedAttention（SOSP'23）** —— 直接攻击本文的预留式显存分配。见 [笔记](../2023-vllm-pagedattention/README.md)。
-- **Sarathi-Serve（OSDI'24）** —— chunked prefill，处理本文没碰的「initiation 阶段的长请求打断 increment 阶段」问题。
+- **[Sarathi-Serve（OSDI'24）](../2024-sarathi-serve/README.md)** —— 将 prefill 分块并限制每轮 token 数，控制长 initiation 对已有 increment 的干扰；补充了 iteration-level scheduling 的工作量约束。
 - **DistServe / Splitwise** —— 把 initiation 与 increment 分离到不同实例，从根本上回避两阶段混排的取舍。
 - **FastServe** —— 抢占式调度，直接挑战本文的严格 FCFS。
 - **Megatron-LM（arXiv 2019）** —— 本文 §4.1 直接复用其层内并行，本文略过的切分细节在那里。见 [笔记](../../llm-training/2019-megatron-lm/README.md)。

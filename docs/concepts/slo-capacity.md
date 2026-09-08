@@ -2,7 +2,7 @@
 concept: "SLO 容量与 p99 尾延迟"
 aliases: ["SLO Capacity", "tail latency", "p99", "goodput"]
 tags: ["performance", "benchmarking", "slo", "llm-serving"]
-papers: ["topics/llm-serving/2026-cacheroute"]
+papers: ["topics/llm-serving/2026-cacheroute", "topics/llm-serving/2024-sarathi-serve"]
 ---
 
 # SLO 容量与 p99 尾延迟
@@ -63,6 +63,8 @@ goodput 通常定义为「满足 SLO 的请求的吞吐」，是同一想法的�
 采纳一个新策略前，要求它在**至少两个负载点**（当前拐点附近，以及拐点以下一档）上，相对基线同时改善 p99 或容量。仅有中间指标（如缓存命中率）的改善不构成采纳理由。
 
 ## 出现在哪些论文里
+
+- [Sarathi-Serve](../topics/llm-serving/2024-sarathi-serve/README.md) —— 将 prefill 分块，用每轮 token 预算控制 decode 干扰并减少流水批次不均。
 
 - [DistServe](../topics/llm-serving/2024-distserve/README.md) —— 把 **per-GPU goodput** （在 SLO 达成率约束下每张 GPU 能承受的最大请求率）立为优化目标，并坚持 **TTFT / TPOT 双指标**；论证了「总吞吐」作为目标会把优化带向错误方向。
 - [CacheRoute](../topics/llm-serving/2026-cacheroute/README.md) —— SLO 容量的定义、右删失标注、配对种子与 Student-$t$ 置信区间的完整用法；并用实测数据说明缓存命中率与 SLO 容量不单调。
