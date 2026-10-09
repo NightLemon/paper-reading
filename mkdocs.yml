@@ -51,6 +51,7 @@ theme:
 nav:
   - 首页: index.md
   - 待读队列: reading-list.md
+  - Agent/RAG 按需路线: agent-rag-route.md
   - 论文笔记:
       - Foundations 奠基论文:
           - topics/foundations/README.md

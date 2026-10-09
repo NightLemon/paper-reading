@@ -2,7 +2,11 @@
 
 这是一条**面向新人的学习路径**，按依赖关系分阶段排列。每篇都标注了发表场合、影响力层级和推荐理由。
 
+当前以 14 天 Agent / LLM 应用开发准备为主线时，使用 [Agent/RAG 按需阅读与实践路线](agent-rag-route.md)：遇到检索、工具反馈或评测问题，再读相应小节并做一个小实验。下列系统论文路线保留为长期深入入口，无需先全部读完才开始应用开发。
+
 **用法**：把想读的那行 `[ ]` 改成 `[x]`，然后说「精读 XXX」，我会拉原文、建目录、写完整报告。也可以直接说「按路径继续」，我从当前阶段的第一篇未读论文开始。
+
+`[x]` 表示已选择进入精读队列；是否完成以论文页状态和正文为准。读者自己的“读过 / 跑过 / 复现”需要另附证据，不从队列勾选或仓库已有笔记推导。
 
 **影响力标注**：
 `⭐⭐⭐` 领域奠基，不读会有知识断层 · `⭐⭐` 高影响力，业界广泛引用/落地 · `⭐` 值得一读，视兴趣取舍
@@ -16,6 +20,7 @@
 | Attention Is All You Need | NeurIPS'17 | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) |
 | vLLM / PagedAttention | SOSP'23 | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) |
 | CacheRoute | arXiv'26 | [笔记](topics/llm-serving/2026-cacheroute/README.md) |
+| Raft | ATC'14 | [笔记](topics/distributed-systems/2014-raft/README.md) |
 
 到这里已经有了完整的一条链：Transformer 架构 → KV Cache → 单机分页管理 → 跨机路由。
 
@@ -83,7 +88,7 @@
 
 计算机系统的通识，与 LLM 无关但决定你理解系统论文的深度。可以长期慢读。
 
-- [x] ⭐⭐⭐ **In Search of an Understandable Consensus Algorithm（Raft）** — ATC'14 · 🚧 **已拆成 GitHub Issue，待接单** · [骨架页](topics/distributed-systems/2014-raft/README.md)
+- [x] ⭐⭐⭐ **In Search of an Understandable Consensus Algorithm（Raft）** — ATC'14 · ✅ **笔记完成** · [六段式笔记](topics/distributed-systems/2014-raft/README.md)
       *为什么读*：共识算法的最佳入门，论文本身以「可理解性」为设计目标，对新人极友好。
 
 - [ ] ⭐⭐⭐ **MapReduce: Simplified Data Processing on Large Clusters** — OSDI'04
@@ -112,11 +117,12 @@
 
 ## 阶段 6 · Agent 与 RAG 应用架构
 
-这一阶段迭代快、共识少，建议等前面阶段稳固后再进入，且以综述性阅读为主。
+应用开发主线可直接从这里按问题选读，不要求先完成阶段 1–5。具体的检索问题、可迁移设计判断、小实验、证据记录和自拟面试追问见 [Agent/RAG 路线](agent-rag-route.md)。以下论文在本仓库仍是候选入口，本路线不把它们升级为已完成精读。
 
 - [ ] ⭐⭐ **Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks** — NeurIPS'20 · [arXiv:2005.11401](https://arxiv.org/abs/2005.11401)
 - [ ] ⭐⭐ **ReAct: Synergizing Reasoning and Acting in Language Models** — ICLR'23 · [arXiv:2210.03629](https://arxiv.org/abs/2210.03629)
-- [ ] ⭐ **MemGPT / Toolformer** — Agent 记忆与工具调用，适合做成主题综述而非单篇精读。
+- [ ] ⭐ **Toolformer: Language Models Can Teach Themselves to Use Tools** — 2023 · [arXiv:2302.04761](https://arxiv.org/abs/2302.04761) · 用于区分工具使用训练与应用侧工具协议。
+- [ ] ⭐ **MemGPT: Towards LLMs as Operating Systems** — 2023 · [arXiv:2310.08560](https://arxiv.org/abs/2310.08560) · 仅在遇到长对话记忆管理问题时进一步选读。
 
 ---
 
@@ -137,3 +143,4 @@
 | Attention Is All You Need | Foundations | [笔记](topics/foundations/2017-attention-is-all-you-need/README.md) | 2026-09-02 |
 | vLLM / PagedAttention | LLM Serving | [笔记](topics/llm-serving/2023-vllm-pagedattention/README.md) | 2026-09-02 |
 | CacheRoute | LLM Serving | [笔记](topics/llm-serving/2026-cacheroute/README.md) | 2026-09-02 |
+| Raft | Distributed Systems | [笔记](topics/distributed-systems/2014-raft/README.md) | 2026-09-02 |
